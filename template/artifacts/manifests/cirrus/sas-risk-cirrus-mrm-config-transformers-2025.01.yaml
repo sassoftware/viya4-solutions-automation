@@ -1,0 +1,87 @@
+# Copyright © 2024, SAS Institute Inc., Cary, NC, USA.  All Rights Reserved.
+# SPDX-License-Identifier: Apache-2.0
+---
+apiVersion: builtin
+kind: PatchTransformer
+metadata:
+  name: cirrus-mrm-parameter-transform
+patch: |-
+
+  #Cirrus deployer environment variables
+  - op: replace
+    path: /data/SAS_LOG_LEVEL_RISKCIRRUSDEPLOYER
+    value: "INFO"
+
+  - op: replace
+    path: /data/SAS_RISK_CIRRUS_DEPLOYER_INCLUDE_SAMPLES
+    value: "Y"
+
+  - op: replace
+    path: /data/SAS_RISK_CIRRUS_DEPLOYER_RUN_SPECIFIC_INSTALL_STEPS
+    value: ""
+
+  - op: replace
+    path: /data/SAS_RISK_CIRRUS_DEPLOYER_SKIP_SPECIFIC_INSTALL_STEPS
+    value: ""
+
+  #Cirrus solution builder environment variables
+  - op: replace
+    path: /data/SAS_RISK_CIRRUS_SOLUTION_BUILDER_REPO_PREFIX
+    value: "mrm"
+
+  - op: replace
+    path: /data/SAS_RISK_CIRRUS_SOLUTION_BUILDER_REPO_USER
+    value: "<<SAS_RISK_CIRRUS_REPO_USER>>"
+
+  - op: replace
+    path: /data/SAS_RISK_CIRRUS_SOLUTION_GIT_REPO_FULL_URL
+    value: "<<SAS_RISK_CIRRUS_REPO_FQDN>>/<<SAS_RISK_CIRRUS_REPO_USER>>/sas-risk-cirrus-mrm"
+
+  - op: replace
+    path: /data/SAS_RISK_CIRRUS_SOLUTION_BUILDER_SOLUTION_BRANCH_PREFIX
+    value: "NON-RND"
+
+  - op: replace
+    path: /data/SAS_RISK_CIRRUS_SOLUTION_APPEND_NAMESPACE_TO_BRANCH_FLG
+    value: "Y"
+
+  - op: replace
+    path: /data/SAS_RISK_CIRRUS_SOLUTION_BUILDER_REPO_HOST
+    value: "<<SAS_RISK_CIRRUS_REPO_HOST>>"
+
+  #Below are deprecated variables that are only included for backwards compatibility for DOTA pipelines
+  #These should not be removed until the last supported cadence is removed from support, else the pipelines will fail on older cadences
+  #When moving a value to this section, you MUST make a comment with the most recent LTS it is needed in so we can remove it after that date.
+
+  #End of deprecated vars
+
+target:
+  kind: ConfigMap
+  name: sas-risk-cirrus-mrm-parameters*
+
+---
+apiVersion: builtin
+kind: PatchTransformer
+metadata:
+  name: cirrus-mrm-secret-transform
+patch: |-
+
+  #Cirrus solution builder secrets
+  - op: replace
+    path: /data/SAS_RISK_CIRRUS_SOLUTION_BUILDER_REPO_TOKEN
+    value: "<<GITEA_CIRRUS_REPO_ACCESS_TOKEN_B64>>"
+
+  #Below are deprecated variables that are only included for backwards compatibility for DOTA pipelines
+  #These should not be removed until the last supported cadence is removed from support, else the pipelines will fail on older cadences
+  #When moving a value to this section, you MUST make a comment with the most recent LTS it is needed in so we can remove it after that date.
+
+  # Can be removed when we stop supporting LTS 2023.03
+  - op: replace
+    path: /data/mrm_builder_repo_token
+    value: "<<GITEA_CIRRUS_REPO_ACCESS_TOKEN_B64>>"
+
+  #End of deprecated vars
+
+target:
+  kind: Secret
+  name: sas-risk-cirrus-mrm-secret*

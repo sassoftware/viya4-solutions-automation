@@ -1,0 +1,412 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/0.1.2-preview/CreateUIDefinition.MultiVm.json#",
+  "handler": "Microsoft.Azure.CreateUIDef",
+  "version": "0.1.2-preview",
+  "parameters": {
+    "config": {
+      "basics": {
+        "description": "**SAS Model Risk Management** enables you to manage, assess, and validate an inventory of models. For more information, see the[documentation]().<br /> ",
+        "resourceGroup": {
+          "allowExisting": true
+        },
+        "location": {
+          "allowedValues": [
+              "eastus",
+              "eastus2"
+          ]
+        }
+      }
+    },
+    "basics": [
+      {
+        "name": "actionSection",
+        "type": "Microsoft.Common.Section",
+        "label": "Deployment creation",
+        "visible": true,
+        "elements": [
+          {
+            "name": "actionText",
+            "type": "Microsoft.Common.TextBlock",
+            "visible": true,
+            "options": {
+              "text": "Create a new SAS Model Risk Management for Azure deployment.",
+              "link": {
+                "label": "Learn more",
+                "uri": ""
+              }
+            }
+          },
+          {
+            "name": "deploymentPrefix",
+            "type": "Microsoft.Common.TextBox",
+            "label": "Deployment Prefix",
+            "toolTip": "Prefix used for all resources created by this deployment. If the default DNS suffix (cloudapp.azure.com) is used, random alphanumeric characters will be appended to ensure uniqueness.",
+            "defaultValue": "mapp",
+            "constraints": {
+              "required": true,
+              "regex": "^(?!-)[a-z0-9-]{2,61}[a-z0-9]$",
+              "validationMessage": "Must be 3-63 characters, only lowercase letters, numbers, and hyphens. Cannot start or end with a hyphen."
+            },
+            "visible": true
+          },
+          {
+            "name": "deploymentDnsSuffix",
+            "type": "Microsoft.Common.TextBox",
+            "label": "DNS Suffix",
+            "toolTip": "DNS suffix used to construct the FQDN for the deployment. If the default value is used, the FQDN will be <deployment_prefix>-<random number>.<location>.cloudapp.azure.com. If different from default value, the FQDN will be <deploymentPrefix>.<deploymentDnsSuffix>. The DNS suffix must be a valid domain name and must not contain any special characters or spaces.",
+            "defaultValue": "cloudapp.azure.com",
+            "constraints": {
+              "required": true,
+              "regex": "^(?!-)[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)*$",
+              "validationMessage": "Must be a valid DNS suffix (3-63 characters, lowercase letters, numbers, hyphens, and dots). Each label must not start or end with a hyphen, and the suffix must not start or end with a dot."
+            },
+            "visible": true
+          }
+        ]
+      }
+    ],
+    "steps": [
+      {
+        "name": "softwareOrderStep",
+        "label": "SAS",
+        "elements": [
+          {
+            "name": "sasSection",
+            "type": "Microsoft.Common.Section",
+            "visible": true,
+            "label": "SAS Software related input",
+            "elements": [
+              {
+                "name": "viyaOrderSASURI",
+                "type": "Microsoft.Common.TextBox",
+                "label": "Viya Order SAS URL (SAS Token)",
+                "toolTip": "Paste the URL of the ZIP file containing the software order data. Upload it to a blob storage with a SAS token first.",
+                "constraints": {
+                  "required": true
+                },
+                "visible": true
+              },
+              {
+                "name": "viyaCLISASURI",
+                "type": "Microsoft.Common.TextBox",
+                "label": "Viya CLI SAS URL (SAS Token)",
+                "toolTip": "Paste the URL of the .tgz archive containing the SAS Viya CLI. Upload it to a blob storage with a SAS token first.",
+                "constraints": {
+                  "required": true
+                },
+                "visible": true
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "sizingStep",
+        "label": "Environment Sizing",
+        "elements": [
+          {
+            "name": "clusterSection",
+            "type": "Microsoft.Common.Section",
+            "visible": true,
+            "label": "",
+            "elements": [
+              {
+                "name": "aksSizing",
+                "type": "Microsoft.Common.DropDown",
+                "label": "Environment Sizing",
+                "placeholder": "",
+                "defaultValue": "ProdSmall",
+                "toolTip": "",
+                "constraints": {
+                    "allowedValues": [
+                        {
+                            "label": "Production - Small",
+                            "value": "ProdSmall"
+                        },
+                        {
+                            "label": "Production - Medium",
+                            "value": "ProdMedium"
+                        },
+                        {
+                            "label": "Production - Large",
+                            "value": "ProdLarge"
+                        }
+                    ],
+                    "required": true
+                },
+                "visible": true
+              },
+              {
+                "name": "ExtPgInfo",
+                "type": "Microsoft.Common.TextBlock",
+                "options": {
+                    "text": "The selected environment sizing requires additional information."
+                },
+                "visible": "[or(equals(steps('sizingStep').clusterSection.aksSizing, 'ProdSmall'), equals(steps('sizingStep').clusterSection.aksSizing, 'ProdMedium'), equals(steps('sizingStep').clusterSection.aksSizing, 'ProdLarge'))]"
+              },
+              {
+                "name": "ExtPgPasswordNote",
+                "type": "Microsoft.Common.TextBlock",
+                "options": {
+                    "text": "IMPORTANT: The information related to user names and passwords is not stored after deployment. Be sure to record them in a secure place for future use."
+                },
+                "visible": "[or(equals(steps('sizingStep').clusterSection.aksSizing, 'ProdSmall'), equals(steps('sizingStep').clusterSection.aksSizing, 'ProdMedium'), equals(steps('sizingStep').clusterSection.aksSizing, 'ProdLarge'))]"
+              },
+              {
+                "name": "extPgIDSAdminUser",
+                "type": "Microsoft.Common.TextBox",
+                "label": "Admin User name for the external IDS PostgreSQL server",
+                "toolTip": "Admin user name for external IDS PostgreSQL server",
+                "constraints": {
+                  "required": true
+                },
+                "visible": "[or(equals(steps('sizingStep').clusterSection.aksSizing, 'ProdSmall'), equals(steps('sizingStep').clusterSection.aksSizing, 'ProdMedium'), equals(steps('sizingStep').clusterSection.aksSizing, 'ProdLarge'))]"
+
+              },
+              {
+                "name": "extPGIDSAdminPassword",
+                "type": "Microsoft.Common.PasswordBox",
+                "label": {
+                  "password": "Admin Password for external IDS PostgreSQL server",
+                  "confirmPassword": "Confirm password"
+                },
+                "toolTip": "Admin Password for external IDS PostgreSQL server",
+                "constraints": {
+                  "required": true
+                },
+                "visible": "[or(equals(steps('sizingStep').clusterSection.aksSizing, 'ProdSmall'), equals(steps('sizingStep').clusterSection.aksSizing, 'ProdMedium'), equals(steps('sizingStep').clusterSection.aksSizing, 'ProdLarge'))]"
+
+              },
+              {
+                "name": "extPgCDSAdminUser",
+                "type": "Microsoft.Common.TextBox",
+                "label": "Admin User name for the external CDS PostgreSQL server",
+                "toolTip": "Admin User name for the external CDS PostgreSQL server",
+                "constraints": {
+                  "required": true
+                },
+                "visible": "[or(equals(steps('sizingStep').clusterSection.aksSizing, 'ProdSmall'), equals(steps('sizingStep').clusterSection.aksSizing, 'ProdMedium'), equals(steps('sizingStep').clusterSection.aksSizing, 'ProdLarge'))]"
+
+              },
+              {
+                "name": "extPGCDSAdminPassword",
+                "type": "Microsoft.Common.PasswordBox",
+                "label": {
+                  "password": "Admin password for external CDS PostgreSQL server",
+                  "confirmPassword": "Confirm password"
+                },
+                "toolTip": "Admin password for external CDS PostgreSQL server",
+                "constraints": {
+                  "required": true
+                },
+                "visible": "[or(equals(steps('sizingStep').clusterSection.aksSizing, 'ProdSmall'), equals(steps('sizingStep').clusterSection.aksSizing, 'ProdMedium'), equals(steps('sizingStep').clusterSection.aksSizing, 'ProdLarge'))]"
+
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "accounts",
+        "label": "Accounts",
+        "elements": [
+          {
+            "name": "adminUserSection",
+            "type": "Microsoft.Common.Section",
+            "visible": true,
+            "label": "Administrator Account for SAS Model Risk Management",
+            "elements": [
+              {
+                "name": "AdminPasswordNote",
+                "type": "Microsoft.Common.TextBlock",
+                "options": {
+                    "text": "IMPORTANT: These passwords are not stored after deployment. Be sure to record them in a secure place for future use."
+                }
+              },
+              {
+                "name": "viyaAdminPassword",
+                "type": "Microsoft.Common.PasswordBox",
+                "label": {
+                    "password": "Application administrator password corresponding to user 'viya_admin'",
+                    "confirmPassword": "Confirm password"
+                },
+                "toolTip": "Confirm the default password for the SAS Model Risk Management administrator corresponding to user 'viya_admin'",
+                "constraints": {
+                    "required": true,
+                    "regex": "^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z])[\\w~@#$%^&*+=|{}:;!.?\\()\\[\\]-]{12,}$",
+                    "validationMessage": "The password must contain at least 12 characters, with at least one uppercase letter, one lowercase letter, and one number."
+                },
+                "options": {
+                    "hideConfirmation": false
+                },
+                "visible": true
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "access",
+        "label": "Access",
+        "elements": [
+          {
+            "name": "accessSection",
+            "type": "Microsoft.Common.Section",
+            "visible": true,
+            "label": "Access the SAS Model Risk Management environment",
+            "elements": [
+              {
+                "name": "ipAllowlist",
+                "type": "Microsoft.Common.TextBox",
+                "label": "IP address allow-list",
+                "toolTip": "Enter comma-separated list of IP addresses in CIDR notation (for example, 1.2.3.4/32) that should have access the environment",
+                "constraints": {
+                  "required": true
+                },
+                "visible": true
+              },
+              {
+                "name": "userSshPublicKey",
+                "type": "Microsoft.Common.TextBox",
+                "label": "User SSH Public Key",
+                "toolTip": "Enter the User SSH Public Key",
+                "multiLine": true,
+                "constraints": {
+                  "required": true
+                },
+                "visible": true
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "misc",
+        "label": "Other Settings",
+        "elements": [
+          {
+            "name": "tlsSection",
+            "type": "Microsoft.Common.Section",
+            "visible": true,
+            "label": "TLS Configuration",
+            "elements": [
+              {
+                "name": "tlsCertB64",
+                "type": "Microsoft.Common.TextBox",
+                "label": "TLS Certificate (Base64)",
+                "toolTip": "Enter the TLS certificate in Base64 format. This is used for the TLS termination on the load balancer. This is not required if you don't provide a custom DNS suffix. If not supplied, a self-signed certificate will be generated and used.",
+                "multiLine": true,
+                "constraints": {
+                  "required": false
+                },
+                "visible": true
+              },
+              {
+                "name": "tlsKeyB64",
+                "type": "Microsoft.Common.TextBox",
+                "label": "TLS Key (Base64)",
+                "toolTip": "Enter the TLS key in Base64 format. This is used for the TLS termination on the load balancer. This is not required if you don't provide a custom DNS suffix. If not supplied, a self-signed certificate will be generated and used",
+                "multiLine": true,
+                "constraints": {
+                  "required": false
+                },
+                "visible": true
+              },
+              {
+                "name": "tlsTrustedCaCertsB64",
+                "type": "Microsoft.Common.TextBox",
+                "label": "TLS Trusted CA Certificates (Base64)",
+                "toolTip": "Enter the TLS trusted CA certificates in Base64 format. This is used for the TLS termination on the load balancer. This is not required if you don't provide a custom DNS suffix. If not supplied, a self-signed certificate will be generated and used",
+                "multiLine": true,
+                "constraints": {
+                  "required": false
+                },
+                "visible": true
+              }
+              
+            ]
+          },
+          {
+            "name": "deploySection",
+            "type": "Microsoft.Common.Section",
+            "visible": true,
+            "label": "Deployment Configuration",
+            "elements": [
+              {
+                "name": "stepAddUsers",
+                "type": "Microsoft.Common.DropDown",
+                "label": "Number of sample users to pre-configure",
+                "placeholder": "",
+                "defaultValue": ["5"],
+                "toolTip": "",
+                "multiselect": false,
+                "selectAll": false,
+                "filter": false,
+                "multiLine": true,
+                "constraints": {
+                  "allowedValues": [
+                    {
+                      "label": "0",
+                      "description": "Add no pre-configured user.",
+                      "value": "0"
+                    },
+                    {
+                      "label": "1",
+                      "description": "Add 1 pre-configured user.",
+                      "value": "1"
+                    },
+                    {
+                      "label": "3",
+                      "description": "Add 3 pre-configured users.",
+                      "value": "3"
+                    },
+                    {
+                      "label": "5",
+                      "description": "Add 5 pre-configured users.",
+                      "value": "5"
+                    },
+                    {
+                      "label": "10",
+                      "description": "Add 10 pre-configured users.",
+                      "value": "10"
+                    }
+
+                  ],
+                  "required": false
+                },
+                "visible": true
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "outputs": {
+      "location": "[location()]",
+      "deploymentRandomId": true,
+      "deploymentPrefix": "[basics('actionSection').deploymentPrefix]",
+      "deploymentDnsSuffix": "[basics('actionSection').deploymentDnsSuffix]",
+      
+      "viyaOrderSASURI": "[steps('softwareOrderStep').sasSection.viyaOrderSASURI]",
+      "viyaCLISASURI": "[steps('softwareOrderStep').sasSection.viyaCLISASURI]",
+      
+      "aksSizing": "[steps('sizingStep').clusterSection.aksSizing]",
+      "extPgIDSAdminUser": "[steps('sizingStep').clusterSection.extPgIDSAdminUser]",
+      "extPGIDSAdminPassword": "[steps('sizingStep').clusterSection.extPGIDSAdminPassword]",
+      "extPgCDSAdminUser": "[steps('sizingStep').clusterSection.extPgCDSAdminUser]",
+      "extPGCDSAdminPassword": "[steps('sizingStep').clusterSection.extPGCDSAdminPassword]",
+      
+      "viyaAdminPassword": "[steps('accounts').adminUserSection.viyaAdminPassword]",
+      
+      "userSshPublicKey": "[steps('access').accessSection.userSshPublicKey]",
+      "ipAllowlist": "[steps('access').accessSection.ipAllowlist]",
+
+      "tlsCertB64": "[steps('misc').tlsSection.tlsCertB64]",
+      "tlsKeyB64": "[steps('misc').tlsSection.tlsKeyB64]",
+      "tlsTrustedCaCertsB64": "[steps('misc').tlsSection.tlsTrustedCaCertsB64]",
+      
+      "stepAddUsers": "[steps('misc').deploySection.stepAddUsers]"
+
+    }
+  }
+}
