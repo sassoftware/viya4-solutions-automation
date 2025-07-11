@@ -61,16 +61,28 @@ jobs:
           package_version="${{ inputs.package_version }}"
           viya_solution="${{ inputs.viya_solution }}"
           
-          if [ "${package_version}" == "latest" ]; then
-            echo "Fetching latest release version for ${viya_solution} on sas-institute-rnd-internal/tmp-viya-solutions repo."
-            tag_version=$(gh release list --repo sas-institute-rnd-internal/tmp-viya-solutions --json tagName,isDraft,isPrerelease --jq '[.[] | select(.isDraft == false and .isPrerelease == false)][0].tagName')
-          else
-            echo "Using specified package version: ${package_version}"
-            tag_version="${package_version}"
+          # Default repo
+          repo="sassoftware/viya4-solutions-automation"
+          tag_version="$package_version"
+
+          # Check for org/repo:version format
+          if [[ "$package_version" == *:* ]]; then
+            repo_part="${package_version%%:*}"
+            version_part="${package_version##*:}"
+            repo="$repo_part"
+            tag_version="$version_part"
           fi
-          echo "Downloading package for tag version: ${tag_version}"
+
+          if [ "$tag_version" == "latest" ]; then
+            echo "Fetching latest release version for ${viya_solution} on $repo repo."
+            tag_version=$(gh release list --repo "$repo" --json tagName,isDraft,isPrerelease --jq '[.[] | select(.isDraft == false and .isPrerelease == false)][0].tagName')
+          else
+            echo "Using specified package version: ${tag_version}"
+          fi
+
+          echo "Downloading package for tag version: ${tag_version} from repo: ${repo}"
           mkdir -p tmp_download
-          gh release download ${tag_version} --repo sas-institute-rnd-internal/tmp-viya-solutions --pattern "*${viya_solution}*.zip" --dir tmp_download
+          gh release download "$tag_version" --repo "$repo" --pattern "*${viya_solution}*.zip" --dir tmp_download
 
       - name: Find downloaded file
         id: find_file
