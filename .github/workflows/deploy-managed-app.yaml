@@ -57,7 +57,7 @@ on:
 
 jobs:
   parse-additional-parameters:
-    uses: ./.github/workflows/parse-additional-parameters.yaml@main
+    uses: ./.github/workflows/parse-additional-parameters.yaml
     with:
       json_input: ${{ inputs.additional_parameters }}
       extracted_keys_with_defaults: |
@@ -92,7 +92,7 @@ jobs:
         }
 
   determine-sas-solution:
-    uses: ./.github/workflows/determine-sas-solution.yaml@main
+    uses: ./.github/workflows/determine-sas-solution.yaml
     with:
       viya_solution_name: ${{ inputs.viya_solution_name }}
 
@@ -100,7 +100,7 @@ jobs:
     needs: 
       - parse-additional-parameters
       - determine-sas-solution
-    uses: ./.github/workflows/retrieve-package.yaml@main
+    uses: ./.github/workflows/retrieve-package.yaml
     with:
       artifact_name: package
       package_version: ${{ fromJSON(needs.parse-additional-parameters.outputs.vars).package_version }}
@@ -108,7 +108,7 @@ jobs:
 
   download-and-upload-package-again:
     needs: call-retrieve-package
-    uses: ./.github/workflows/download-and-upload-package-again.yaml@main
+    uses: ./.github/workflows/download-and-upload-package-again.yaml
     with:
       input_package_name: package
       output_package_name: package2
@@ -120,7 +120,7 @@ jobs:
       - download-and-upload-package-again
       - parse-additional-parameters
     secrets: inherit
-    uses: ./.github/workflows/create-storage-account-and-container.yaml@main
+    uses: ./.github/workflows/create-storage-account-and-container.yaml
     with:
       storage_account_rg: sa-rg
       storage_account_name: viyasolutions  # Storage account name must be between 3 and 24 characters in length and use numbers and lower-case letters only.
@@ -135,7 +135,7 @@ jobs:
       - parse-additional-parameters
       - call-create-storage-account-and-container
     secrets: inherit
-    uses: ./.github/workflows/create-managed-app-definition.yaml@main
+    uses: ./.github/workflows/create-managed-app-definition.yaml
     with:
       environment: ${{ inputs.environment }}
       package_sas_uri: ${{ needs.call-create-storage-account-and-container.outputs.package_sas_uri }}
@@ -150,7 +150,7 @@ jobs:
       - parse-additional-parameters
       - call-create-managed-app-definition
     secrets: inherit
-    uses: ./.github/workflows/create-managed-app.yaml@main
+    uses: ./.github/workflows/create-managed-app.yaml
     with:
       environment: ${{ inputs.environment }}
       mapp_rg: ${{ needs.call-create-managed-app-definition.outputs.mapp_rg }}
