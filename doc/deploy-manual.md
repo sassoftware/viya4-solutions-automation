@@ -10,7 +10,7 @@ Assumptions:
 
 #### 0. Download Repository Release
 
-1. Go to [Code → Releases](https://github.com/sassoftware/viya-solutions/releases).
+1. Go to [Code → Releases](https://github.com/sassoftware/viya4-solutions-automation/releases).
 2. Download the latest package for the `SAS-solution` solution (for example if `SAS-solution` is `SAS Model Risk Management`, use `package-MRM-<version>.zip`).
 
 #### 1. Create or Use a Resource Group
