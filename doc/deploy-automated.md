@@ -91,7 +91,7 @@ EOF
 The table below indicates which additional parameters are required
 | Label | Variable name | Required? | Default value | Link |
 |-------------| -------------|----------|--|--|
-| IP Allow List | ip_allow_list| Yes |   | [link](#ip-allow-list) |
+| IP Allow List | ip_allow_list| **Yes** |   | [link](#ip-allow-list) |
 | Admin User Name for IDS External Postgres Server | ext_pg_ids_admin_user | Yes (Depends on other selections) | | [link](#admin-user-name-and-password-for-external-postgres-server)|
 | Admin Password for IDS External Postgres Server | ext_pg_ids_admin_password | Yes (Depends on other selections) | | [link](#admin-user-name-and-password-for-external-postgres-server)|
 | Admin User Name for CDS External Postgres Server | ext_pg_cds_admin_user | Yes (Depends on other selections) | |[link](#admin-user-name-and-password-for-external-postgres-server)|
