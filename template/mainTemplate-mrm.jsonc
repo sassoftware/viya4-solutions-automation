@@ -34,7 +34,7 @@
         },
         "deploymentName": {
             "type": "string",
-            "defaultValue": "[if(parameters('updateExistingDeployment'), replace(parameters('existingDeploymentResourceGroup'), '-mrg', ''), concat(parameters('deploymentPrefix'), if(parameters('deploymentRandomId'), concat('-', toLower(substring(uniqueString(newGuid()), 0, 6))), ''))]"
+            "defaultValue": "[if(parameters('updateExistingDeployment'), replace(parameters('existingDeploymentResourceGroup'), '-mrg', ''), concat(parameters('deploymentPrefix'), if(parameters('deploymentRandomId'), concat('-', toLower(substring(uniqueString(newGuid()), 0, 6))), '')))]"
         },
         "deploymentDnsSuffix": {
             "type": "string"
