@@ -152,15 +152,15 @@ echolog "   V4_CFG_V4D_VERSION=${V4_CFG_V4D_VERSION}"
 echolog "   V4_CFG_NAMESPACE=${V4_CFG_NAMESPACE}"
 echolog "   V4_CFG_LOADBALANCER_SOURCE_RANGES=${V4_CFG_LOADBALANCER_SOURCE_RANGES}"
 
-echolog "   V4_CFG_RWX_FILESTORE_ENDPOINT=${V4_CFG_RWX_FILESTORE_ENDPOINT}"
+# echolog "   V4_CFG_RWX_FILESTORE_ENDPOINT=${V4_CFG_RWX_FILESTORE_ENDPOINT}"
 echolog "   V4_CFG_RWX_FILESTORE_PATH=${V4_CFG_RWX_FILESTORE_PATH}"
 echolog "   V4_CFG_INGRESS_DNS_PREFIX=${V4_CFG_INGRESS_DNS_PREFIX}"
 echolog "   V4_CFG_INGRESS_FQDN=${V4_CFG_INGRESS_FQDN}"
 echolog "   NFS_VM_ADMIN_USER=${NFS_VM_ADMIN_USER}"
-echolog "   NFS_VM_IP=${NFS_VM_IP}"
+# echolog "   NFS_VM_IP=${NFS_VM_IP}"
 echolog "   STORAGE_ACCOUNT=${STORAGE_ACCOUNT}"
 echolog "   STORAGE_ACCOUNT_CONTAINER=${STORAGE_ACCOUNT_CONTAINER}"
-echolog "   JUMP_VM_IP=${JUMP_VM_IP}"
+# echolog "   JUMP_VM_IP=${JUMP_VM_IP}"
 echolog "   STEP_INSTALL_SUPERSET_FLAG=${STEP_INSTALL_SUPERSET_FLAG}"
 echolog "   STEP_UPDATE_SPEC_CIRRUS_FLAG=${STEP_UPDATE_SPEC_CIRRUS_FLAG}"
 echolog "   STEP_UPDATE_SPEC_CAS_FLAG=${STEP_UPDATE_SPEC_CAS_FLAG}"
@@ -169,6 +169,7 @@ echolog "   STEP_ADD_USERS=${STEP_ADD_USERS}"
 echolog "   STEP_DISABLE_CAS_FLAG=${STEP_DISABLE_CAS_FLAG}"
 echolog "   STEP_DISABLE_NONESSENTIAL_APPS_RUN_TIME_FLAG=${STEP_DISABLE_NONESSENTIAL_APPS_RUN_TIME_FLAG}"
 echolog "   EXTPG_CONFIG_B64=${EXTPG_CONFIG_B64}"
+echolog "   IS_UPDATE=${IS_UPDATE}"
 
 # see here for more vars: https://github.com/sassoftware/viya4-deployment/blob/main/docs/CONFIG-VARS.md
 
@@ -219,6 +220,18 @@ function getKubeconfig {
 # Get storage account key
 function getStorageAccountKey {
   STORAGE_ACCOUNT_KEY=$(az storage account keys list -g "${RG}" -n "${STORAGE_ACCOUNT}" --query "[0].value" -o tsv)
+}
+
+function retrieveNFSServerInfo {
+  export NFS_VM_IP=$(az vm list-ip-addresses -g ${RG} -n ${NFS_DEPLOYMENT_NAME} --query "[0].virtualMachine.network.publicIpAddresses[0].ipAddress" -o tsv)
+  export V4_CFG_RWX_FILESTORE_ENDPOINT="$NFS_VM_IP"
+  echolog "   NFS_VM_IP=${NFS_VM_IP}"
+  echolog "   V4_CFG_RWX_FILESTORE_ENDPOINT=${V4_CFG_RWX_FILESTORE_ENDPOINT}"
+}
+
+function retrieveJumpServerInfo {
+  export JUMP_VM_IP=$(az vm list-ip-addresses -g ${RG} -n ${JUMP_DEPLOYMENT_NAME} --query "[0].virtualMachine.network.publicIpAddresses[0].ipAddress" -o tsv)
+  echolog "   JUMP_VM_IP=${JUMP_VM_IP}"
 }
 
 # Download NFS VM private key
@@ -375,13 +388,19 @@ function unzipViya4Manifests {
 
 # Create Viya namespace
 function createViyaNamespace {
-  kubectl create ns ${V4_CFG_NAMESPACE} >>$LOGFILE 2>&1
+  kubectl get ns ${V4_CFG_NAMESPACE} || kubectl create ns ${V4_CFG_NAMESPACE} >>$LOGFILE 2>&1
 }
+
+
+
 
 # Apply Viya manifests
 function applyViya4Manifests {
   echolog "Function [applyViya4Manifests] starting ..."
   cd $HOME/viya4-manifests
+
+
+
 
   echolog "[applyViya4Manifests] replacing variables ..."
   
@@ -863,7 +882,7 @@ EOF
 }
 
 function createPgadminNamespace {
-  kubectl create ns pgadmin >>$LOGFILE 2>&1
+  kubectl get ns pgadmin || kubectl create ns pgadmin >>$LOGFILE 2>&1
 }
 
 function getPGCredentials {
@@ -2159,7 +2178,10 @@ wait_for_fn_result getKubeconfig
 wait_for_fn_with_str_result getStorageAccountKey STORAGE_ACCOUNT_KEY
 
 # Download NFS VM Private Key
-wait_for_fn_result downloadNfsVmPrivateKey
+if [ ! "${IS_UPDATE}" ]
+then
+  wait_for_fn_result downloadNfsVmPrivateKey
+fi
 
 # Create Viya namespace
 wait_for_fn_result createViyaNamespace
@@ -2248,6 +2270,9 @@ wait_for_fn_result unzipViya4Manifests
 # We can comment this out since we are using azure flexible server
 # wait_for_fn_result installPostgres
 
+wait_for_fn_result retrieveNFSServerInfo
+wait_for_fn_result retrieveJumpServerInfo
+
 wait_for_fn_result createAnsibleVars
 
 # Install Viya baseline
@@ -2307,7 +2332,10 @@ wait_for_fn_result registerExtClient
 
 # Clean up and output for template
 # Delete NFS VM Private Key
-wait_for_fn_result deleteNfsVmPrivateKey
+if [ ! "${IS_UPDATE}" ]
+then
+  wait_for_fn_result deleteNfsVmPrivateKey
+fi
 
 # Get Viya Cadence Release, but don't error out if we don't find it.
 getViyaCadenceRelease
@@ -2323,7 +2351,10 @@ V4_CAS_IP="0.0.0.0"
 
 
 # Create home directoy
-wait_for_fn_result homeDir
+if [ ! "${IS_UPDATE}" ]
+then
+  wait_for_fn_result homeDir
+fi
 
 wait_for_fn_result updateSpecCirrusDeployments
 wait_for_fn_result waitForCirrusDeployments

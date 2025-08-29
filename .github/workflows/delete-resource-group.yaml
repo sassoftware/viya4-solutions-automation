@@ -12,12 +12,8 @@ on:
         description: 'Environment to deploy to'
         required: true
         type: string
-      mapp_rg_prefix:
-        description: 'Managed Application Resource Group Prefix'
-        required: true
-        type: string
-      mapp_suffix_id:
-        description: 'Managed Application Suffix ID'
+      mapp_rg_name:
+        description: 'Managed Application Resource Group Name'
         required: true
         type: string
       monitor_artifact_name:
@@ -55,7 +51,7 @@ jobs:
       - name: Delete Resource Group 
         id: delete-resource-group
         env:
-          mapp_rg: ${{ inputs.mapp_rg_prefix }}-${{ inputs.mapp_suffix_id }}-rg
+          mapp_rg: ${{ inputs.mapp_rg_name }}
           subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
         run: |
           # source the downloaded artifact - it should contain the status variable

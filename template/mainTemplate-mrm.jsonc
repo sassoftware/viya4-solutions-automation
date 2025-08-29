@@ -6,14 +6,26 @@
             "type": "string",
             "defaultValue": "[resourceGroup().location]"
         },
-        
+        "updateExistingDeployment": {
+            "type": "bool",
+            "defaultValue": false,
+            "metadata": {
+                "description": "Set to true to update an existing deployment, false to create a new deployment."
+            }
+        },
+        "existingDeploymentResourceGroup": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "The resource group name of the existing deployment to update (ending with -mrg)."
+            }
+        },        
         "deploymentRandomId": {
             "type": "bool",
             "metadata": {
                 "description": "Random ID to append to the deployment prefix. This will be used to construct the FQDN for the deployment."
             }
         },
-
         "deploymentPrefix": {
             "type": "string",
             "metadata": {
@@ -22,7 +34,7 @@
         },
         "deploymentName": {
             "type": "string",
-            "defaultValue": "[concat(parameters('deploymentPrefix'), if(parameters('deploymentRandomId'), concat('-', toLower(substring(uniqueString(newGuid()), 0, 6))), ''))]"
+            "defaultValue": "[if(parameters('updateExistingDeployment'), replace(parameters('existingDeploymentResourceGroup'), '-mrg', ''), concat(parameters('deploymentPrefix'), if(parameters('deploymentRandomId'), concat('-', toLower(substring(uniqueString(newGuid()), 0, 6))), ''))]"
         },
         "deploymentDnsSuffix": {
             "type": "string"
@@ -190,15 +202,15 @@
         }
     },
     "variables": {
-        "appPlanName": "sas-viya-on-azure",
-        "appTrialPeriodDays": 14,
         "azCliVersion": "2.37.0",
         "kubernetesMajorVersion": "1.30",
-        "identityName": "[concat(parameters('deploymentName'), '-id-', substring(parameters('guid'),0,7))]",
+        "identityName":  "[concat(deployment().name,'-identity')]",
+        
         "contributorRoleId": "b24988ac-6180-42a0-ab88-20f7382dd24c",
         "rgContributorRoleDefinitionName": "[guid(concat(variables('identityName'), '-ra-rg-contributor'))]",
         "aksClusterUserRoleId": "4abbcc35-e782-43d8-92c5-2d3f1bd2253f",
         "aksClusterUserRoleDefinitionName": "[guid(concat(variables('identityName'), '-ra-aks-cluster-user'))]",
+        
         "vnetDeploymentName": "[concat(deployment().name,'-vnet')]",
         "nsgDeploymentName": "[concat(deployment().name,'-nsg')]",
         "jumpDeploymentName": "[concat(deployment().name,'-jump')]",
@@ -209,7 +221,7 @@
         "viyaDeployDeploymentName": "[concat(deployment().name,'-deploy')]",
         "aksName": "[concat(parameters('deploymentName'), '-aks')]",
         "deploymentFqdn": "[if(equals(parameters('deploymentDnsSuffix'), 'cloudapp.azure.com'), concat(parameters('deploymentName'), '.', parameters('location'), '.cloudapp.azure.com'), concat(parameters('deploymentName'), '.', parameters('deploymentDnsSuffix')))]",
-        "storageAccountName": "[concat(take(replace(parameters('deploymentName'),'-',''),12),take(replace(parameters('guid'),'-',''),12))]",
+        "storageAccountName": "[concat(take(replace(parameters('deploymentName'),'-',''),17),'storage')]",
         "storageAccountContainerName": "deploymentassets",
         "jumpVmAdminUser": "jumpuser",
         "nfsVmAdminUser": "nfsuser",
@@ -586,7 +598,8 @@
         "statelessConfig": "[variables('aksSizing')[parameters('aksSizing')].statelessConfig]",
         "managementConfig": "[variables('aksSizing')[parameters('aksSizing')].managementConfig]",
         "defaultConfig": "[variables('aksSizing')[parameters('aksSizing')].defaultConfig]",
-        "backupConfig": "[variables('aksSizing')[parameters('aksSizing')].backupConfig]"
+        "backupConfig": "[variables('aksSizing')[parameters('aksSizing')].backupConfig]",
+        "isUpdate": "[parameters('updateExistingDeployment')]"
     },
     "resources": [
         {
@@ -624,6 +637,7 @@
         },
         {
            "name": "[variables('vnetDeploymentName')]",
+           "condition": "[not(variables('isUpdate'))]",
            "type": "Microsoft.Resources/deployments",
            "apiVersion": "2021-04-01",
            "dependsOn": [],
@@ -666,6 +680,7 @@
 
         {
            "name": "[variables('nsgDeploymentName')]",
+           "condition": "[not(variables('isUpdate'))]",
            "type": "Microsoft.Resources/deployments",
            "apiVersion": "2021-04-01",
            "dependsOn": [
@@ -700,6 +715,7 @@
         },
         {
            "type": "Microsoft.Storage/storageAccounts",
+           "condition": "[not(variables('isUpdate'))]",
            "apiVersion": "2022-05-01",
            "name": "[variables('storageAccountName')]",
            "location": "[parameters('location')]",
@@ -713,6 +729,7 @@
         },
         {
            "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+           "condition": "[not(variables('isUpdate'))]",
            "apiVersion": "2021-06-01",
            "name": "[format('{0}/default/{1}', variables('storageAccountName'), variables('storageAccountContainerName'))]",
            "dependsOn": [
@@ -721,6 +738,7 @@
         },
         {
            "type": "Microsoft.Resources/deploymentScripts",
+           "condition": "[not(variables('isUpdate'))]",
            "apiVersion": "2020-10-01",
            "name": "[variables('keypairGeneratorScriptName')]",
            "location": "[parameters('location')]",
@@ -765,6 +783,7 @@
         },
         {
            "name": "[variables('nfsDeploymentName')]",
+           "condition": "[not(variables('isUpdate'))]",
            "type": "Microsoft.Resources/deployments",
            "apiVersion": "2021-04-01",
            "dependsOn": [
@@ -806,6 +825,7 @@
         },
         {
            "name": "[variables('jumpDeploymentName')]",
+           "condition": "[not(variables('isUpdate'))]",
            "type": "Microsoft.Resources/deployments",
            "apiVersion": "2021-04-01",
            "dependsOn": [
@@ -847,6 +867,7 @@
         },
         {
            "type": "Microsoft.Resources/deploymentScripts",
+           "condition": "[not(variables('isUpdate'))]",
            "apiVersion": "2020-10-01",
            "name": "[variables('kubernetesVersionScriptName')]",
            "location": "[parameters('location')]",
@@ -871,13 +892,13 @@
            ]
         },
         {
-           "condition": "[greater(length(variables('aksSizing')[parameters('aksSizing')].extPgConfig), 0)]",
+           "name": "[variables('aksSizing')[parameters('aksSizing')].extPgConfig[copyIndex()].DeploymentName]",
+           "condition": "[and(not(variables('isUpdate')),greater(length(variables('aksSizing')[parameters('aksSizing')].extPgConfig), 0))]",
            "copy": {
              "name": "extPgConfigLoop",
              "count": "[length(variables('aksSizing')[parameters('aksSizing')].extPgConfig)]",
              "mode": "serial" 
            },
-           "name": "[variables('aksSizing')[parameters('aksSizing')].extPgConfig[copyIndex()].DeploymentName]",
            "type": "Microsoft.Resources/deployments",
            "apiVersion": "2021-04-01",
            "dependsOn": [
@@ -940,9 +961,10 @@
            }
         },
         {
+           "name": "[variables('aksClusterUserRoleDefinitionName')]",
+           "condition": "[not(variables('isUpdate'))]",
            "type": "Microsoft.Authorization/roleAssignments",
            "apiVersion": "2022-01-01-preview",
-           "name": "[variables('aksClusterUserRoleDefinitionName')]",
            "dependsOn": [
                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('identityName'))]",
                "[resourceId('Microsoft.Resources/deployments', variables('aksDeploymentName'))]"
@@ -982,19 +1004,16 @@
                    "aksName": { "value": "[variables('aksName')]" }, 
                    "kubernetesVersion": { "value": "[reference(variables('kubernetesVersionScriptName')).outputs.kubernetesVersion]" }, 
                    "v4CfgNamespace": { "value": "[variables('v4CfgNamespace')]" }, 
-                   "v4CfgRwxFilestoreEndpoint": { "value": "[reference(variables('nfsDeploymentName')).outputs.privateIp.value]" }, 
                    "v4CfgRwxFilestorePath": { "value": "[variables('v4CfgRwxFilestorePath')]" }, 
                    "v4CfgIngressDnsPrefix": { "value": "[parameters('deploymentPrefix')]" }, 
                    "v4CfgIngressFqdn": { "value": "[variables('deploymentFqdn')]" }, 
                    "v4CfgLoadBalancerSourceRanges": { "value": "[parameters('ipAllowlist')]" }, 
-                   "appPlanName": { "value": "[variables('appPlanName')]" }, 
-                   "appTrialPeriodDays": { "value": "[variables('appTrialPeriodDays')]" }, 
+                   "nfsDeploymentName": { "value": "[variables('nfsDeploymentName')]" },
                    "nfsVmAdminUser": { "value": "[variables('nfsVmAdminUser')]" }, 
-                   "nfsVmIp": { "value": "[reference(variables('nfsDeploymentName')).outputs.privateIp.value]" }, 
                    "storageAccountName": { "value": "[variables('storageAccountName')]" }, 
                    "storageAccountContainerName": { "value": "[variables('storageAccountContainerName')]" }, 
                    "viyaAdminPassword": { "value": "[parameters('viyaAdminPassword')]" }, 
-                   "jumpVmIp": { "value": "[reference(variables('jumpDeploymentName')).outputs.publicIp.value]" }, 
+                   "jumpDeploymentName": { "value": "[variables('jumpDeploymentName')]" },
                    "deployScriptContainerCleanupPreference": { "value": "[parameters('deployScriptContainerCleanupPreference')]" }, 
                    "stepInstallSupersetFlag": { "value": "[parameters('stepInstallSupersetFlag')]" }, 
                    "stepUpdateSpecCirrusDeploymentsFlag": { "value": "[parameters('stepUpdateSpecCirrusDeploymentsFlag')]" }, 
@@ -1007,7 +1026,8 @@
                    "tlsCertB64": { "value": "[parameters('tlsCertB64')]" }, 
                    "tlsKeyB64": { "value": "[parameters('tlsKeyB64')]" }, 
                    "tlsTrustedCaCertsB64": { "value": "[parameters('tlsTrustedCaCertsB64')]" },
-                   "viyaOrderSASURI": { "value": "[parameters('viyaOrderSASURI')]" }
+                   "viyaOrderSASURI": { "value": "[parameters('viyaOrderSASURI')]" },
+                   "isUpdate": {"value": "[variables('isUpdate')]" }
                }
            }
         }

@@ -40,9 +40,6 @@
         "v4CfgNamespace": {
             "type": "string"
         },
-        "v4CfgRwxFilestoreEndpoint": {
-            "type": "string"
-        },
         "v4CfgRwxFilestorePath": {
             "type": "string"
         },
@@ -55,16 +52,10 @@
         "v4CfgLoadBalancerSourceRanges": {
             "type": "string"
         },
-        "appPlanName": {
+        "nfsDeploymentName": {
             "type": "string"
-        },
-        "appTrialPeriodDays": {
-            "type": "int"
         },
         "nfsVmAdminUser": {
-            "type": "string"
-        },
-        "nfsVmIp": {
             "type": "string"
         },
         "storageAccountName": {
@@ -76,7 +67,7 @@
         "viyaAdminPassword": {
             "type": "securestring"
         },
-        "jumpVmIp":{
+        "jumpDeploymentName":{
             "type": "string"
         },
         "deployScriptContainerCleanupPreference": {
@@ -121,6 +112,10 @@
         "viyaOrderSASURI": {
             "type": "string",
             "defaultValue": ""
+        },
+        "isUpdate": {
+            "type": "bool",
+            "defaultValue": false
         }
     },
     "variables": {
@@ -181,10 +176,6 @@
                         "value": "[parameters('v4CfgNamespace')]"
                     },
                     {
-                        "name": "V4_CFG_RWX_FILESTORE_ENDPOINT",
-                        "value": "[parameters('v4CfgRwxFilestoreEndpoint')]"
-                    },
-                    {
                         "name": "V4_CFG_RWX_FILESTORE_PATH",
                         "value": "[parameters('v4CfgRwxFilestorePath')]"
                     },
@@ -201,21 +192,14 @@
                         "value": "[parameters('v4CfgLoadBalancerSourceRanges')]"
                     },
                     {
-                        "name": "APP_PLAN_NAME",
-                        "value": "[parameters('appPlanName')]"
-                    },
-                    {
-                        "name": "APP_TRIAL_PERIOD_DAYS",
-                        "value": "[parameters('appTrialPeriodDays')]"
+                        "name": "NFS_DEPLOYMENT_NAME",
+                        "value": "[parameters('nfsDeploymentName')]"
                     },
                     {
                         "name": "NFS_VM_ADMIN_USER",
                         "value": "[parameters('nfsVmAdminUser')]"
                     },
-                    {
-                        "name": "NFS_VM_IP",
-                        "value": "[parameters('nfsVmIp')]"
-                    },
+                    
                     {
                         "name": "STORAGE_ACCOUNT",
                         "value": "[parameters('storageAccountName')]"
@@ -225,8 +209,8 @@
                         "value": "[parameters('storageAccountContainerName')]"
                     },
                     {
-                        "name": "JUMP_VM_IP",
-                        "value": "[parameters('jumpVmIp')]"
+                        "name": "JUMP_DEPLOYMENT_NAME",
+                        "value": "[parameters('jumpDeploymentName')]"
                     },
                     {
                         "name": "STEP_INSTALL_SUPERSET_FLAG",
@@ -275,6 +259,10 @@
                     {
                         "name": "VIYA_ORDER_SAS_URI",
                         "value": "[parameters('viyaOrderSASURI')]"
+                    },
+                    {
+                        "name": "IS_UPDATE",
+                        "value": "[parameters('isUpdate')]"
                     }
                 ],
                 "primaryScriptUri": "[uri(parameters('_artifactsLocation'), concat('viyaDeploy.sh', parameters('_artifactsLocationSasToken')))]",
