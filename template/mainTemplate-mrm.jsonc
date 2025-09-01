@@ -1053,7 +1053,7 @@
         "sasViyaJumpIp": {
             "type": "string",
             "value": "[if(not(variables('isUpdate')), reference(variables('jumpDeploymentName')).outputs.publicIp.value, json('null'))]"
-        }
+        },
         "sasViyaCaCertificateBase64": {
            "type": "string",
            "value": "[reference(variables('viyaDeployDeploymentName')).outputs.v4CaCertificateBase64.value]"
