@@ -116,6 +116,9 @@
         "isUpdate": {
             "type": "bool",
             "defaultValue": false
+        }, 
+        "subnetId": {
+            "type": "string"
         }
     },
     "variables": {
@@ -138,6 +141,9 @@
                 "forceUpdateTag": "[parameters('utcValue')]",
                 "azCliVersion": "[parameters('azCliVersion')]",
                 "arguments": "",
+                "containerSettings": {
+                    "subnetIds": ["[parameters('subnetId')]"]
+                },
                 "environmentVariables": [
                     {
                         "name": "SUBSCRIPTION_ID",
