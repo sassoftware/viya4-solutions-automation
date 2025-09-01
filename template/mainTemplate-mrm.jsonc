@@ -894,7 +894,7 @@
                "forceUpdateTag": "[parameters('utcValue')]",
                "azCliVersion": "[variables('azCliVersion')]",
                "arguments": "[concat(parameters('location'),' ',variables('kubernetesMajorVersion'))]",
-               "scriptContent": "echo param1 is $1; echo param2 is $2; az --version; az aks get-versions --location $1 -o json | jq -r --arg version $2 '.values[] | select(.version == $version) | .patchVersions | keys[]'; echo debug1; az aks get-versions --location $1 -o json | jq -r --arg version $2 '.values[] | select(.version == $version) | .patchVersions | keys[]' | sort -V | tail -1; echo debug2; result=$(az aks get-versions --location $1 -o json | jq -r --arg version $2 '.values[] | select(.version == $version) | .patchVersions | keys[]' | sort -V | tail -1 ); echo debug3; echo $result; echo {\\\"kubernetesVersion\\\":\\\"$result\\\"} > $AZ_SCRIPTS_OUTPUT_PATH",
+               "scriptContent": "result=$(az aks get-versions --location $location -o json | jq -r --arg version $kubernetesMajorVersion '[.orchestrators[] | select (.orchestratorVersion | contains ($version)) | .orchestratorVersion] |.[0]'); echo {\\\"kubernetesVersion\\\":\\\"$result\\\"} > $AZ_SCRIPTS_OUTPUT_PATH",
                "timeout": "PT30M",
                "cleanupPreference": "[parameters('kubernetesVersionScriptContainerCleanupPreference')]",
                "retentionInterval": "PT2H"
