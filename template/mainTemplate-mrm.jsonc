@@ -880,7 +880,6 @@
         },
         {
            "type": "Microsoft.Resources/deploymentScripts",
-           "condition": "[not(variables('isUpdate'))]",
            "apiVersion": "2020-10-01",
            "name": "[variables('kubernetesVersionScriptName')]",
            "location": "[parameters('location')]",
@@ -895,7 +894,7 @@
                "forceUpdateTag": "[parameters('utcValue')]",
                "azCliVersion": "[variables('azCliVersion')]",
                "arguments": "[concat(parameters('location'),' ',variables('kubernetesMajorVersion'))]",
-               "scriptContent": "result=$( az aks get-versions --location $1 --query orchestrators[*].orchestratorVersion | jq --arg version $2 -c '.[] | select(contains($version))' | sort -V | tail -1 | tr -d '\\\"' ); result=1.30.6; echo {\\\"kubernetesVersion\\\":\\\"$result\\\"} > $AZ_SCRIPTS_OUTPUT_PATH",
+               "scriptContent": "result=$(  az aks get-versions --location $1 -o json | jq -r --arg version $2 '.values[] | select(.version == $version) | .patchVersions | keys[]' | sort -V | tail -1 ); echo {\\\"kubernetesVersion\\\":\\\"$result\\\"} > $AZ_SCRIPTS_OUTPUT_PATH",
                "timeout": "PT30M",
                "cleanupPreference": "[parameters('kubernetesVersionScriptContainerCleanupPreference')]",
                "retentionInterval": "PT2H"
