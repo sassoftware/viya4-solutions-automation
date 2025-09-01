@@ -239,7 +239,7 @@ jobs:
             --arg ipAllowlist "${ip_allow_list}" \
             --arg viyaOrderSASURI "${viya_order_sas_uri}" \
             --arg location "${location}"\
-            --arg updateExistingDeployment "${updateExistingDeployment}"\
+            --argjson updateExistingDeployment ${updateExistingDeployment}\
             --arg existingDeploymentResourceGroup "${existingDeploymentResourceGroup}"\
             --arg deploymentPrefix "${deployment_prefix}"\
             --arg deploymentDnsSuffix "${deployment_dns_suffix}"\
