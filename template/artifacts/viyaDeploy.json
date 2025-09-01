@@ -142,7 +142,9 @@
                 "azCliVersion": "[parameters('azCliVersion')]",
                 "arguments": "",
                 "containerSettings": {
-                    "subnetIds": ["[parameters('subnetId')]"]
+                    "subnetIds": [
+                        {"id": "[parameters('subnetId')]"}
+                    ]
                 },
                 "environmentVariables": [
                     {
