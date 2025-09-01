@@ -996,7 +996,6 @@
            "name": "[variables('viyaDeployDeploymentName')]",
            "dependsOn": [
                "[resourceId('Microsoft.Resources/deployments', variables('aksDeploymentName'))]",
-               "[resourceId('Microsoft.Resources/deployments', variables('vnetDeploymentName'))]",
                "[resourceId('Microsoft.Resources/deployments', variables('jumpDeploymentName'))]",
                "[resourceId('Microsoft.Storage/storageAccounts/blobServices/containers', variables('storageAccountName'), 'default', variables('storageAccountContainerName'))]",
                "[resourceId('Microsoft.Resources/deploymentScripts', variables('keypairGeneratorScriptName'))]",
@@ -1042,7 +1041,7 @@
                    "tlsTrustedCaCertsB64": { "value": "[parameters('tlsTrustedCaCertsB64')]" },
                    "viyaOrderSASURI": { "value": "[parameters('viyaOrderSASURI')]" },
                    "isUpdate": {"value": "[variables('isUpdate')]" },
-                   "subnetId": {"value": "[reference(variables('vnetDeploymentName')).outputs.aksSubnetId.value]" }
+                   "subnetId": {"value": "[concat(resourceId('Microsoft.Network/virtualNetworks',concat(parameters('deploymentName'),'-vnet')),'/subnets/',parameters('deploymentName'),'-aks-subnet')]" }
                }
            }
         }
