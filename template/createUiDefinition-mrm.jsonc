@@ -340,7 +340,7 @@
       "deploymentPrefix": "[basics('actionSection').deploymentPrefix]",
       "deploymentDnsSuffix": "[basics('actionSection').deploymentDnsSuffix]",
       "viyaOrderSASURI": "[steps('softwareOrderStep').sasSection.viyaOrderSASURI]",
-      "aksSizing": "[steps('sizingStep').clusterSection.aksSizing]",
+      "aksSizing": "[if(basics('actionSection').updateExistingDeployment, 'N/A', steps('sizingStep').clusterSection.aksSizing)]",
       "extPgIDSAdminUser": "[steps('sizingStep').clusterSection.extPgIDSAdminUser]",
       "extPGIDSAdminPassword": "[steps('sizingStep').clusterSection.extPGIDSAdminPassword]",
       "extPgCDSAdminUser": "[steps('sizingStep').clusterSection.extPgCDSAdminUser]",

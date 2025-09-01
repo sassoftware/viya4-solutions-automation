@@ -159,13 +159,14 @@ jobs:
           then
             echo "No existingDeploymentResourceGroup supplied. This will be a new deployment."
             updateExistingDeployment=false
+            aks_cluster_sizing=${{ inputs.aks_cluster_sizing }}
           else
             echo "existingDeploymentResourceGroup supplied: $existingDeploymentResourceGroup. This will be an update deployment."
             updateExistingDeployment=true
+            aks_cluster_sizing="N/A"
           fi
           mapp_rg="${{ inputs.mapp_rg_name }}"
           mapp_def_name="${{ inputs.mapp_def_name }}"
-          aks_cluster_sizing=${{ inputs.aks_cluster_sizing }}
           viya_order_sas_uri="${{ inputs.viya_order_sas_uri }}"
           ip_allow_list=${{ inputs.ip_allow_list }}
           viya_admin_password=${{ inputs.viya_admin_password }}
