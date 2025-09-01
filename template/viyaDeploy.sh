@@ -2321,9 +2321,11 @@ wait_for_fn_result uploadDeployAssets
 wait_for_fn_result createSupersetNamespace
 wait_for_fn_result deploySuperset
 
-
 #Fix Viya Admin
+if [ ! "${IS_UPDATE}" ]
+then
 wait_for_fn_result fixViyaAdmin
+fi
 
 # Register Ext Client
 wait_for_fn_with_str_result getAccessToken ACCESS_TOKEN
