@@ -205,21 +205,21 @@
     "variables": {
         "azCliVersion": "2.37.0",
         "kubernetesMajorVersion": "1.30",
-        "identityName":  "[concat(deployment().name,'-identity')]",
+        "identityName":  "[concat(parameters('deploymentName'),'-identity')]",
         
         "contributorRoleId": "b24988ac-6180-42a0-ab88-20f7382dd24c",
         "rgContributorRoleDefinitionName": "[guid(concat(variables('identityName'), '-ra-rg-contributor'))]",
         "aksClusterUserRoleId": "4abbcc35-e782-43d8-92c5-2d3f1bd2253f",
         "aksClusterUserRoleDefinitionName": "[guid(concat(variables('identityName'), '-ra-aks-cluster-user'))]",
         
-        "vnetDeploymentName": "[concat(deployment().name,'-vnet')]",
-        "nsgDeploymentName": "[concat(deployment().name,'-nsg')]",
-        "jumpDeploymentName": "[concat(deployment().name,'-jump')]",
-        "aksDeploymentName": "[concat(deployment().name,'-aks')]",
-        "nfsDeploymentName": "[concat(deployment().name,'-nfs')]",
+        "vnetDeploymentName": "[concat(parameters('deploymentName'),'-vnet')]",
+        "nsgDeploymentName": "[concat(parameters('deploymentName'),'-nsg')]",
+        "jumpDeploymentName": "[concat(parameters('deploymentName'),'-jump')]",
+        "aksDeploymentName": "[concat(parameters('deploymentName'),'-aks')]",
+        "nfsDeploymentName": "[concat(parameters('deploymentName'),'-nfs')]",
         "keypairGeneratorScriptName": "[concat(parameters('deploymentName'),'-ds-keypair-gen')]",
         "kubernetesVersionScriptName": "[concat(parameters('deploymentName'),'-ds-k8s-version')]",
-        "viyaDeployDeploymentName": "[concat(deployment().name,'-deploy')]",
+        "viyaDeployDeploymentName": "[concat(parameters('deploymentName'),'-deploy')]",
         "aksName": "[concat(parameters('deploymentName'), '-aks')]",
         "deploymentFqdn": "[if(equals(parameters('deploymentDnsSuffix'), 'cloudapp.azure.com'), concat(parameters('deploymentName'), '.', parameters('location'), '.cloudapp.azure.com'), concat(parameters('deploymentName'), '.', parameters('deploymentDnsSuffix')))]",
         "storageAccountName": "[concat(take(replace(parameters('deploymentName'),'-',''),17),'storage')]",
@@ -234,7 +234,7 @@
 
 
         "extPgIDS": {
-            "DeploymentName": "[concat(deployment().name,'-extpg-ids')]",
+            "DeploymentName": "[concat(parameters('deploymentName'),'-extpg-ids')]",
             "ServerName": "[concat(parameters('deploymentName'), '-extpg-ids')]",
             "AdministratorLogin": "[parameters('extPgIDSAdminUser')]",
             "AdministratorLoginPassword": "[parameters('extPGIDSAdminPassword')]",
@@ -254,7 +254,7 @@
             ]
         },
         "extPgCDS": {
-            "DeploymentName": "[concat(deployment().name,'-extpg-cds')]",
+            "DeploymentName": "[concat(parameters('deploymentName'),'-extpg-cds')]",
             "ServerName": "[concat(parameters('deploymentName'), '-extpg-cds')]",
             "AdministratorLogin": "[parameters('extPgCDSAdminUser')]",
             "AdministratorLoginPassword": "[parameters('extPGCDSAdminPassword')]",
