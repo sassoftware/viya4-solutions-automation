@@ -13,6 +13,10 @@ on:
         description: 'Azure Region to deploy to'
         required: true
         type: string
+      update_existing_deployment_mrg_name:
+        description: 'Existing Deployment Resource Group Name for update deployments. Leave empty for new deployments.'
+        required: false
+        type: string
       aks_cluster_sizing:
         description: 'AKS Cluster Sizing'
         required: true
@@ -150,7 +154,7 @@ jobs:
           # Inputs
           location=${{inputs.location}}
           
-          existingDeploymentResourceGroup="${{ matrix.update_existing_deployment_mrg_name || "" }}"
+          existingDeploymentResourceGroup="${{ inputs.update_existing_deployment_mrg_name }}"
           if [ -z "$existingDeploymentResourceGroup" ]
           then
             echo "No existingDeploymentResourceGroup supplied. This will be a new deployment."
