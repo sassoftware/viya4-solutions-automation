@@ -150,7 +150,7 @@ jobs:
           # Inputs
           location=${{inputs.location}}
           
-          existingDeploymentResourceGroup="${{ inputs.update_existing_deployment_mrg_name || "" }}"
+          existingDeploymentResourceGroup="${{ matrix.update_existing_deployment_mrg_name || "" }}"
           if [ -z "$existingDeploymentResourceGroup" ]
           then
             echo "No existingDeploymentResourceGroup supplied. This will be a new deployment."
