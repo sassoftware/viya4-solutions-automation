@@ -149,6 +149,16 @@ jobs:
           echo "::group::Create Managed Application"
           # Inputs
           location=${{inputs.location}}
+          
+          existingDeploymentResourceGroup="${{ inputs.update_existing_deployment_mrg_name || "" }}"
+          if [ -z "$existingDeploymentResourceGroup" ]
+          then
+            echo "No existingDeploymentResourceGroup supplied. This will be a new deployment."
+            updateExistingDeployment=false
+          else
+            echo "existingDeploymentResourceGroup supplied: $existingDeploymentResourceGroup. This will be an update deployment."
+            updateExistingDeployment=true
+          fi
           mapp_rg="${{ inputs.mapp_rg_name }}"
           mapp_def_name="${{ inputs.mapp_def_name }}"
           aks_cluster_sizing=${{ inputs.aks_cluster_sizing }}
@@ -225,6 +235,8 @@ jobs:
             --arg ipAllowlist "${ip_allow_list}" \
             --arg viyaOrderSASURI "${viya_order_sas_uri}" \
             --arg location "${location}"\
+            --arg updateExistingDeployment "${updateExistingDeployment}"\
+            --arg existingDeploymentResourceGroup "${existingDeploymentResourceGroup}"\
             --arg deploymentPrefix "${deployment_prefix}"\
             --arg deploymentDnsSuffix "${deployment_dns_suffix}"\
             --arg userSshPublicKey "${ssh_public_key}"\
@@ -247,6 +259,8 @@ jobs:
             --arg extPGCDSAdminPassword "${ext_pg_cds_admin_password}"\
             '{
               location: {value: $location}, 
+              updateExistingDeployment: {value: $updateExistingDeployment},
+              existingDeploymentResourceGroup: {value: $existingDeploymentResourceGroup},
               deploymentRandomId: {value: false},
               deploymentPrefix: {value: $deploymentPrefix},
               deploymentDnsSuffix: {value: $deploymentDnsSuffix},

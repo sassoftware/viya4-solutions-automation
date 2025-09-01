@@ -55,7 +55,8 @@
                 "ProdSmall",
                 "ProdMedium",
                 "ProdLarge",
-                "RDSmall"
+                "RDSmall",
+                ""
             ]
         },
         "ipAllowlist": {
