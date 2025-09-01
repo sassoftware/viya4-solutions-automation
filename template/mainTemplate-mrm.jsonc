@@ -894,7 +894,7 @@
                "forceUpdateTag": "[parameters('utcValue')]",
                "azCliVersion": "[variables('azCliVersion')]",
                "arguments": "[concat(parameters('location'),' ',variables('kubernetesMajorVersion'))]",
-               "scriptContent": "result=$(az aks get-versions --location $location -o json | jq -r --arg version $kubernetesMajorVersion '[.orchestrators[] | select (.orchestratorVersion | contains ($version)) | .orchestratorVersion] |.[0]'); echo {\\\"kubernetesVersion\\\":\\\"$result\\\"} > $AZ_SCRIPTS_OUTPUT_PATH",
+               "scriptContent": "result=$(az aks get-versions --location $1 -o json | jq -r --arg version $2 '[.orchestrators[] | select (.orchestratorVersion | contains ($version)) | .orchestratorVersion] |.[0]'); echo {\\\"kubernetesVersion\\\":\\\"$result\\\"} > $AZ_SCRIPTS_OUTPUT_PATH",
                "timeout": "PT30M",
                "cleanupPreference": "[parameters('kubernetesVersionScriptContainerCleanupPreference')]",
                "retentionInterval": "PT2H"
