@@ -87,11 +87,18 @@
                                 }
                             ],
                             "privateEndpointNetworkPolicies": "Disabled",
-                            "privateLinkServiceNetworkPolicies": "Enabled"
+                            "privateLinkServiceNetworkPolicies": "Enabled",
+                            "delegations": [
+                                {
+                                    "name": "aciDelegation",
+                                    "properties": {
+                                        "serviceName": "Microsoft.ContainerInstance/containerGroups"
+                                    }
+                                }
+                            ]
                         }
                     }
                 ]
-
             }
         }
     ],
