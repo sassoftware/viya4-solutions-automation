@@ -50,7 +50,11 @@
         },
         "backupConfig":{
             "type": "object"
-        }
+        },
+        "utcValue": {
+            "type": "string",
+            "defaultValue": "[utcNow()]"
+        },
     },
     "variables": {
         "aksName": "[parameters('aksName')]",
@@ -317,7 +321,7 @@
                 "[resourceId('Microsoft.ContainerService/managedClusters', parameters('aksName'))]"
             ],
             "properties": {
-                "forceUpdateTag": "[newGuid()]",
+                "forceUpdateTag": "[parameters('utcValue')]",
                 "azCliVersion": "2.53.0",
                 "timeout": "PT20M",
                 "cleanupPreference": "OnSuccess",
