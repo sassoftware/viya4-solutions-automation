@@ -308,12 +308,38 @@
             }
         },
         {
+            "type": "Microsoft.Resources/deploymentScripts",
+            "apiVersion": "2020-10-01",
+            "name": "[concat(variables('aksName'), '-wait-script')]",
+            "location": "[parameters('location')]",
+            "kind": "AzureCLI",
+            "dependsOn": [
+                "[resourceId('Microsoft.ContainerService/managedClusters', parameters('aksName'))]"
+            ],
+            "properties": {
+                "forceUpdateTag": "[newGuid()]",
+                "azCliVersion": "2.53.0",
+                "timeout": "PT20M",
+                "cleanupPreference": "OnSuccess",
+                "retentionInterval": "P1D",
+                "scriptContent": "[concat('for i in {1..40}; do\\n', '  state=$(az aks show --name ', parameters('aksName'), ' --resource-group ', resourceGroup().name, ' --query provisioningState -o tsv)\\n', '  echo \"AKS provisioningState: $state\"\\n', '  if [ \"$state\" = \"Succeeded\" ]; then\\n', '    exit 0\\n', '  fi\\n', '  sleep 30\\n', 'done\\n', 'echo \"AKS did not reach Succeeded state in time\"\\n', 'exit 1')]",
+                "arguments": [],
+                "environmentVariables": [],
+                "identity": {
+                    "type": "UserAssigned",
+                    "userAssignedIdentities": {
+                        "[parameters('userAssignedIdentityResourceId')]": {}
+                    }
+                }
+            }
+        },
+        {
             "type": "Microsoft.Network/privateEndpoints",
             "apiVersion": "2021-08-01",
             "name": "[concat(variables('aksName'), '-pe')]",
             "location": "[parameters('location')]",
             "dependsOn": [
-                "[resourceId('Microsoft.ContainerService/managedClusters', parameters('aksName'))]"
+                "[resourceId('Microsoft.Resources/deploymentScripts', concat(variables('aksName'), '-wait-script'))]"
             ],
             "properties": {
                 "subnet": {
