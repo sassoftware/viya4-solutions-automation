@@ -1002,7 +1002,8 @@
                    "statelessConfig": { "value": "[variables('statelessConfig')]" },
                    "managementConfig": { "value": "[variables('managementConfig')]" },
                    "defaultConfig": { "value": "[variables('defaultConfig')]" },
-                   "backupConfig": { "value": "[variables('backupConfig')]" }
+                   "backupConfig": { "value": "[variables('backupConfig')]" },
+                   "identityName": {"value": "[variables('identityName')]"}
                }
            }
         },

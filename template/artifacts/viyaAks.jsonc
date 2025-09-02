@@ -55,6 +55,9 @@
             "type": "string",
             "defaultValue": "[utcNow()]"
         },
+        "identityName": {
+            "type": "string"
+        }
     },
     "variables": {
         "aksName": "[parameters('aksName')]",
@@ -332,7 +335,7 @@
                 "identity": {
                     "type": "UserAssigned",
                     "userAssignedIdentities": {
-                        "[parameters('userAssignedIdentityResourceId')]": {}
+                        "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('identityName'))]": {}
                     }
                 }
             }
