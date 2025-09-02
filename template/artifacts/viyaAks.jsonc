@@ -312,6 +312,9 @@
             "apiVersion": "2021-08-01",
             "name": "[concat(variables('aksName'), '-pe')]",
             "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.ContainerService/managedClusters', parameters('aksName'))]"
+            ],
             "properties": {
                 "subnet": {
                 "id": "[parameters('subnetIdPrivateEndpoint')]"
