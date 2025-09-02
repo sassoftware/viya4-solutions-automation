@@ -330,7 +330,6 @@
                 "cleanupPreference": "OnSuccess",
                 "retentionInterval": "P1D",
                 "scriptContent": "[concat('for i in {1..40}; do\\n', '  state=$(az aks show --name ', parameters('aksName'), ' --resource-group ', resourceGroup().name, ' --query provisioningState -o tsv)\\n', '  echo \"AKS provisioningState: $state\"\\n', '  if [ \"$state\" = \"Succeeded\" ]; then\\n', '    exit 0\\n', '  fi\\n', '  sleep 30\\n', 'done\\n', 'echo \"AKS did not reach Succeeded state in time\"\\n', 'exit 1')]",
-                "arguments": [],
                 "environmentVariables": [],
                 "identity": {
                     "type": "UserAssigned",
