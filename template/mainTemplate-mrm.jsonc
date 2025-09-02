@@ -700,10 +700,11 @@
         {
             "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
             "apiVersion": "2020-06-01",
-            "name": "[concat('privatedns.', parameters('location'), '.azmk8s.io/', parameters('vnetName'), '-link')]",
+            "name": "[concat('privatedns.', parameters('location'), '.azmk8s.io/', variables('vnetName'), '-link')]",
             "location": "global",
             "dependsOn": [
-               "[resourceId('Microsoft.Resources/deployments', variables('vnetDeploymentName'))]"
+                "[resourceId('Microsoft.Network/privateDnsZones', concat('privatedns.', parameters('location'), '.azmk8s.io'))]",
+                "[resourceId('Microsoft.Resources/deployments', variables('vnetDeploymentName'))]"
             ],
             "properties": {
                     "virtualNetwork": {
@@ -938,7 +939,7 @@
                "[resourceId('Microsoft.Resources/deployments', variables('vnetDeploymentName'))]",
                "[resourceId('Microsoft.Storage/storageAccounts/blobServices/containers', variables('storageAccountName'), 'default', variables('storageAccountContainerName'))]",
                "[resourceId('Microsoft.Authorization/roleAssignments', variables('rgContributorRoleDefinitionName'))]",
-               "[resourceId('Microsoft.Network/privatednszones/virtualNetworkLinks', concat('privatedns.', parameters('location'), '.azmk8s.io/', parameters('vnetName'), '-link'))]"
+               "[resourceId('Microsoft.Network/privatednszones/virtualNetworkLinks', concat('privatedns.', parameters('location'), '.azmk8s.io/', variables('vnetName'), '-link'))]"
            ],
            "properties": {
                "mode": "Incremental",
@@ -973,7 +974,7 @@
            "dependsOn": [
                "[resourceId('Microsoft.Resources/deployments', variables('vnetDeploymentName'))]",
                "[resourceId('Microsoft.Resources/deploymentScripts', variables('kubernetesVersionScriptName'))]",
-               "[resourceId('Microsoft.Network/privatednszones/virtualNetworkLinks', concat('privatedns.', parameters('location'), '.azmk8s.io/', parameters('vnetName'), '-link'))]"
+               "[resourceId('Microsoft.Network/privatednszones/virtualNetworkLinks', concat('privatedns.', parameters('location'), '.azmk8s.io/', variables('vnetName'), '-link'))]"
            ],
            "properties": {
                "mode": "Incremental",
