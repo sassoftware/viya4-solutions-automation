@@ -61,12 +61,13 @@
         },
         "subnetCIDR":{
             "type": "string"            
+        },
+        "privateDnsZoneResourceId":{
+            "type": "string"
         }
     },
     "variables": {
-        "delegatedSubnetResourceId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vnetName'),'extpg')]",
-        "privateDnsZoneName": "[concat('privatedns.', parameters('location'), '.azmk8s.io')]",        
-        "privateDnsZoneResourceId": "[resourceId('Microsoft.Network/privateDnsZones', variables('privateDnsZoneName'))]"
+        "delegatedSubnetResourceId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vnetName'),'extpg')]"
     },
     "resources": [
         {
@@ -96,7 +97,7 @@
             "location": "[parameters('location')]",
             "dependsOn": [
                 "[variables('delegatedSubnetResourceId')]",
-                "[variables('privateDnsZoneResourceId')]"
+                "[parameters('privateDnsZoneResourceId')]"
             ],
             "sku": {
                 "name": "[parameters('dbInstanceType')]",
@@ -108,7 +109,7 @@
                 "administratorLoginPassword": "[parameters('administratorLoginPassword')]",
                 "network": {
                     "delegatedSubnetResourceId": "[variables('delegatedSubnetResourceId')]",
-                    "privateDnsZoneArmResourceId": "[variables('privateDnsZoneResourceId')]"
+                    "privateDnsZoneArmResourceId": "[parameters('privateDnsZoneResourceId')]"
                 },
                 "highAvailability": {
                     "mode": "[parameters('haMode')]"
