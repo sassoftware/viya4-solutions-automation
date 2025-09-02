@@ -87,15 +87,7 @@
                                 }
                             ],
                             "privateEndpointNetworkPolicies": "Disabled",
-                            "privateLinkServiceNetworkPolicies": "Enabled",
-                            "delegations": [
-                                {
-                                    "name": "aciDelegation",
-                                    "properties": {
-                                        "serviceName": "Microsoft.ContainerInstance/containerGroups"
-                                    }
-                                }
-                            ]
+                            "privateLinkServiceNetworkPolicies": "Enabled"
                         }
                     }
                 ]
@@ -103,6 +95,10 @@
         }
     ],
     "outputs": {
+        "vnetId": {
+            "type": "string",
+            "value": "[variables('vnetId')[parameters('virtualNetworkNewOrExisting')]]"
+        },
         "aksSubnetId": {
             "type": "string",
             "value": "[variables('aksSubnetId')]"
