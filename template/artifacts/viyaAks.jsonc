@@ -330,7 +330,7 @@
         {
             "type": "Microsoft.Network/privateDnsZones/A",
             "apiVersion": "2020-06-01",
-            "name": "[concat('privatedns.', parameters('location'), '.azmk8s.io'), parameters('aksName'))]",
+            "name": "[concat('privatedns.', parameters('location'), '.azmk8s.io/', parameters('aksName'))]",
             "properties": {
                 "TTL": 3600,
                 "targetResource": {

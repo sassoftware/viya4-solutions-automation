@@ -96,8 +96,7 @@
             "name": "[parameters('serverName')]",
             "location": "[parameters('location')]",
             "dependsOn": [
-                "[variables('delegatedSubnetResourceId')]",
-                "[parameters('privateDnsZoneResourceId')]"
+                "[variables('delegatedSubnetResourceId')]"
             ],
             "sku": {
                 "name": "[parameters('dbInstanceType')]",
