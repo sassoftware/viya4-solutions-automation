@@ -2171,6 +2171,15 @@ wait_for_fn_result checkExternalPostgres
 wait_for_fn_result downloadKubectl
 chmod u+x /usr/local/bin/kubectl
 
+if [ "${IS_UPDATE}" ]
+then
+  echolog "Retrieve IP address of container associated with deployment script"
+  DS_IP=$(az resource show \
+  --ids "/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RG/providers/Microsoft.Resources/deploymentScripts/${AKS/-aks/-ds-viya-deploy}" \
+  --query "properties.containerConfiguration.containerGroupProperties.ipAddress.ip")
+  echolog "DS_IP=${DS_IP}"
+}
+
 # Get managed users Kubeconfig
 wait_for_fn_result getKubeconfig
 

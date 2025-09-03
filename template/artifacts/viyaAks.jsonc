@@ -288,8 +288,7 @@
                     "outboundType": "loadBalancer"
                 },
                 "apiServerAccessProfile": {
-                    "enablePrivateCluster": true,
-                    "enablePrivateClusterPublicFQDN": true
+                    "enablePrivateCluster": false
                 },
                 "autoScalerProfile": {
                     "balance-similar-node-groups": "false",
