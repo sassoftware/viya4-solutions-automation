@@ -2178,7 +2178,7 @@ then
   --ids "/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RG/providers/Microsoft.Resources/deploymentScripts/${AKS/-aks/-ds-viya-deploy}" \
   --query "properties.containerConfiguration.containerGroupProperties.ipAddress.ip")
   echolog "DS_IP=${DS_IP}"
-}
+fi
 
 # Get managed users Kubeconfig
 wait_for_fn_result getKubeconfig
