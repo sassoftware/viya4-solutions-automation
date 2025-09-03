@@ -56,7 +56,8 @@
             "new": "[resourceId('Microsoft.Network/virtualNetworks',parameters('vnetName'))]"
         },
         "aksSubnetId": "[concat(variables('vnetId')[parameters('virtualNetworkNewOrExisting')],'/subnets/',parameters('aksSubnetName'))]",
-        "miscSubnetId": "[concat(variables('vnetId')[parameters('virtualNetworkNewOrExisting')],'/subnets/',parameters('miscSubnetName'))]"
+        "miscSubnetId": "[concat(variables('vnetId')[parameters('virtualNetworkNewOrExisting')],'/subnets/',parameters('miscSubnetName'))]",
+        "deploymentScriptSubnetId": "[concat(variables('vnetId')[parameters('virtualNetworkNewOrExisting')],'/subnets/',parameters('deploymentScriptSubnetName'))]"
     },
     "resources": [
         {
