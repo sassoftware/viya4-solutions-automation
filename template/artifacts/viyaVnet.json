@@ -90,12 +90,10 @@
                             "privateEndpointNetworkPolicies": "Disabled",
                             "delegations": [
                                 {
-                                    "name": "Microsoft.ContainerInstance/containerGroups",
-                                    "id": "[variables('deploymentScriptSubnetId'), '/delegations/Microsoft.ContainerInstance/containerGroups')]",
+                                    "name": "aciDelegation",
                                     "properties": {
                                         "serviceName": "Microsoft.ContainerInstance/containerGroups"
-                                    },
-                                    "type": "Microsoft.Network/virtualNetworks/subnets/delegations"
+                                    }
                                 }
                             ]
                         }
