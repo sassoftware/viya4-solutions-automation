@@ -288,7 +288,8 @@
                     "outboundType": "loadBalancer"
                 },
                 "apiServerAccessProfile": {
-                    "enablePrivateCluster": false
+                    "enablePrivateCluster": true,
+                    "enablePrivateClusterPublicFQDN": true
                 },
                 "autoScalerProfile": {
                     "balance-similar-node-groups": "false",
@@ -349,16 +350,16 @@
             ],
             "properties": {
                 "subnet": {
-                "id": "[parameters('subnetIdPrivateEndpoint')]"
+                    "id": "[parameters('subnetIdPrivateEndpoint')]"
                 },
                 "privateLinkServiceConnections": [
-                {
-                    "name": "aksPrivateLink",
-                    "properties": {
-                    "privateLinkServiceId": "[resourceId('Microsoft.ContainerService/managedClusters', parameters('aksName'))]",
-                    "groupIds": [ "management" ]
+                    {
+                        "name": "aksPrivateLink",
+                        "properties": {
+                            "privateLinkServiceId": "[resourceId('Microsoft.ContainerService/managedClusters', parameters('aksName'))]",
+                            "groupIds": [ "management" ]
+                        }
                     }
-                }
                 ]
             }
         },
