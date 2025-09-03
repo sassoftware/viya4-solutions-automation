@@ -87,7 +87,17 @@
                         "name": "[parameters('deploymentScriptSubnetName')]",
                         "properties": {
                             "addressPrefix": "[parameters('deploymentScriptSubnetPrefix')]",
-                            "privateEndpointNetworkPolicies": "Disabled"
+                            "privateEndpointNetworkPolicies": "Disabled",
+                            "delegations": [
+                                {
+                                    "name": "Microsoft.ContainerInstance/containerGroups",
+                                    "id": "[variables('deploymentScriptSubnetId'), '/delegations/Microsoft.ContainerInstance/containerGroups')]",
+                                    "properties": {
+                                        "serviceName": "Microsoft.ContainerInstance/containerGroups"
+                                    },
+                                    "type": "Microsoft.Network/virtualNetworks/subnets/delegations"
+                                }
+                            ]
                         }
                     },
                     {
