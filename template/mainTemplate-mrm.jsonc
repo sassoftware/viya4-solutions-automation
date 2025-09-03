@@ -1086,7 +1086,7 @@
                    "tlsTrustedCaCertsB64": { "value": "[parameters('tlsTrustedCaCertsB64')]" },
                    "viyaOrderSASURI": { "value": "[parameters('viyaOrderSASURI')]" },
                    "isUpdate": {"value": "[variables('isUpdate')]" },
-                   "subnetId": {"value": "[concat(resourceId('Microsoft.Network/virtualNetworks',concat(parameters('deploymentName'),'-vnet')),'/subnets/',parameters('deploymentName'),'-aks-subnet')]" }
+                   "subnetId": {"value": "[concat(resourceId('Microsoft.Network/virtualNetworks',concat(parameters('deploymentName'),'-vnet')),'/subnets/',parameters('deploymentName'),'-ds-subnet')]" }
                }
            }
         }
