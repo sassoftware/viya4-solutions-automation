@@ -22,6 +22,10 @@
             "type": "string",
             "defaultValue": "[concat(parameters('deploymentName'),'-misc-subnet')]"
         },
+        "deploymentScriptSubnetName": {
+            "type": "string",
+            "defaultValue": "[concat(parameters('deploymentName'),'-ds-subnet')]"
+        },
         "vnetAddressPrefix": {
             "type": "string",
             "defaultValue": "192.168.0.0/16"
@@ -33,6 +37,10 @@
         "miscSubnetPrefix": {
             "type": "string",
             "defaultValue": "192.168.2.0/24"
+        },
+        "deploymentScriptSubnetPrefix": {
+            "type": "string",
+            "defaultValue": "192.168.4.0/24"
         },
         "virtualNetworkNewOrExisting": {
             "type": "string",
@@ -75,6 +83,13 @@
                         }
                     },
                     {
+                        "name": "[parameters('deploymentScriptSubnetName')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('deploymentScriptSubnetPrefix')]",
+                            "privateEndpointNetworkPolicies": "Disabled"
+                        }
+                    },
+                    {
                         "name": "[parameters('aksSubnetName')]",
                         "properties": {
                             "addressPrefix": "[parameters('aksSubnetPrefix')]",
@@ -106,6 +121,10 @@
         "miscSubnetId": {
             "type": "string",
             "value": "[variables('miscSubnetId')]"
+        },
+        "deploymentScriptSubnetId": {
+            "type": "string",
+            "value": "[variables('deploymentScriptSubnetId')]"
         },
         "rg": {
             "type": "string",

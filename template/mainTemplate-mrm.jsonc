@@ -96,6 +96,10 @@
             "type": "string",
             "defaultValue": "192.168.2.0/24"
         },
+        "deploymentScriptSubnetPrefix": {
+            "type": "string",
+            "defaultValue": "192.168.4.0/24"
+        },
         "virtualNetworkNewOrExisting": {
             "type": "string",
             "metadata": {
@@ -231,6 +235,7 @@
         "vnetName": "[concat(parameters('deploymentName'), '-vnet')]",
         "aksSubnetName": "[concat(parameters('deploymentName'), '-aks-subnet')]",
         "miscSubnetName": "[concat(parameters('deploymentName'),'-misc-subnet')]",
+        "deploymentScriptSubnetName": "[concat(parameters('deploymentName'),'-ds-subnet')]",
 
 
         "extPgIDS": {
@@ -675,6 +680,9 @@
                    "miscSubnetName": {
                        "value": "[variables('miscSubnetName')]"
                    },
+                   "deploymentScriptSubnetName": {
+                       "value": "[variables('deploymentScriptSubnetName')]"
+                   },
                    "vnetAddressPrefix": {
                        "value": "[parameters('vnetAddressPrefix')]"
                    },
@@ -683,6 +691,9 @@
                    },
                    "miscSubnetPrefix": {
                        "value": "[parameters('miscSubnetPrefix')]"
+                   },
+                   "deploymentScriptSubnetPrefix": {
+                       "value": "[parameters('deploymentScriptSubnetPrefix')]"
                    },
                    "virtualNetworkNewOrExisting": {
                        "value": "[parameters('virtualNetworkNewOrExisting')]"
@@ -994,7 +1005,7 @@
                    "aksName": {"value": "[variables('aksName')]"},
                    "kubernetesVersion": {"value": "[reference(variables('kubernetesVersionScriptName'), '2020-10-01').outputs.kubernetesVersion]"},
                    "subnetId": {"value": "[reference(variables('vnetDeploymentName')).outputs.aksSubnetId.value]"},
-                   "subnetIdPrivateEndpoint": {"value": "[reference(variables('vnetDeploymentName')).outputs.miscSubnetId.value]"},
+                   "subnetIdPrivateEndpoint": {"value": "[reference(variables('vnetDeploymentName')).outputs.deploymentScriptSubnetId.value]"},
                    "nodeTopology": { "value": "[variables('aksSizing')[parameters('aksSizing')].nodeTopology]" },
                    "casConfig": { "value": "[variables('casConfig')]" },
                    "computeConfig": { "value": "[variables('computeConfig')]" },
