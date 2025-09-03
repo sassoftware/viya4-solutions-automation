@@ -338,45 +338,6 @@
                 }
                 }
             }
-        },
-        {
-            "type": "Microsoft.Network/privateEndpoints",
-            "apiVersion": "2021-08-01",
-            "name": "[concat(variables('aksName'), '-pe')]",
-            "location": "[parameters('location')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Resources/deploymentScripts', concat(variables('aksName'), '-wait-script'))]"
-            ],
-            "properties": {
-                "subnet": {
-                    "id": "[parameters('subnetIdPrivateEndpoint')]"
-                },
-                "privateLinkServiceConnections": [
-                    {
-                        "name": "aksPrivateLink",
-                        "properties": {
-                            "privateLinkServiceId": "[resourceId('Microsoft.ContainerService/managedClusters', parameters('aksName'))]",
-                            "groupIds": [ "management" ]
-                        }
-                    }
-                ]
-            }
-        },
-        {
-            "type": "Microsoft.Network/privateDnsZones/A",
-            "apiVersion": "2020-06-01",
-            "name": "[concat('privatedns.', parameters('location'), '.azmk8s.io/', parameters('aksName'))]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Network/privateEndpoints', concat(variables('aksName'), '-pe'))]"
-            ],
-            "properties": {
-                "TTL": 3600,
-                "ARecords": [
-                    {
-                        "ipv4Address": "[reference(resourceId('Microsoft.Network/privateEndpoints', concat(variables('aksName'), '-pe'))).customDnsConfigs[0].ipAddresses[0]]"
-                    }
-                ]
-            }
         }
     ],
     "outputs": {
