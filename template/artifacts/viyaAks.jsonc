@@ -329,13 +329,13 @@
                 "timeout": "PT20M",
                 "cleanupPreference": "OnSuccess",
                 "retentionInterval": "P1D",
-                "scriptContent": "[concat('set -x\\n', 'LOGFILE=/mnt/azscripts/azscriptoutput.log\\n', 'exec > >(tee -a $LOGFILE) 2>&1\\n', 'echo \"Script started at $(date)\"\\n', 'echo \"AKS Name: ', parameters('aksName'), '\"\\n', 'for i in {1..40}; do\\n', '  state=$(az aks show --name ', parameters('aksName'), ' --resource-group ', resourceGroup().name, ' --query provisioningState -o tsv)\\n', '  echo \"AKS provisioningState: $state\"\\n', '  if [ \"$state\" = \"Succeeded\" ]; then\\n', '    echo \"AKS is ready at $(date)\"\\n', '    break\\n', '  fi\\n', '  sleep 30\\n', 'done\\n', 'if [ \"$state\" != \"Succeeded\" ]; then\\n', '  echo \"AKS did not reach Succeeded state in time\"\\n', '  exit 1\\n', 'fi\\n', 'echo \"Script finished at $(date)\"\\n', 'cat $LOGFILE\\n')]",
+                "scriptContent": "[format(@'\nLOGFILE=/mnt/azscripts/azscriptoutput.log\n\necho \"Script started at $(date)\" | tee -a $LOGFILE\necho \"AKS Name: {0}\" | tee -a $LOGFILE\n\nfor i in {{1..40}}; do\n  state=$(az aks show --name {0} --resource-group {1} --query provisioningState -o tsv)\n  echo \"AKS provisioningState: $state\" | tee -a $LOGFILE\n  if [ \"$state\" = \"Succeeded\" ]; then\n    echo \"AKS is ready at $(date)\" | tee -a $LOGFILE\n    break\n  fi\n  sleep 30\n done\n\nif [ \"$state\" != \"Succeeded\" ]; then\n  echo \"AKS did not reach Succeeded state in time\" | tee -a $LOGFILE\n  exit 1\nfi\n\necho \"Script finished at $(date)\" | tee -a $LOGFILE\ncat $LOGFILE\n'@, parameters('aksName'), resourceGroup().name)]",
                 "environmentVariables": [],
                 "identity": {
-                    "type": "UserAssigned",
-                    "userAssignedIdentities": {
-                        "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('identityName'))]": {}
-                    }
+                "type": "UserAssigned",
+                "userAssignedIdentities": {
+                    "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('identityName'))]": {}
+                }
                 }
             }
         },
