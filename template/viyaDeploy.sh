@@ -2171,13 +2171,37 @@ wait_for_fn_result checkExternalPostgres
 wait_for_fn_result downloadKubectl
 chmod u+x /usr/local/bin/kubectl
 
-if [ "${IS_UPDATE}" ]
-then
-  echolog "Retrieve IP address of container associated with deployment script"
-  DS_IP=$(az resource show \
-  --ids "/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RG/providers/Microsoft.Resources/deploymentScripts/${AKS/-aks/-ds-viya-deploy}" \
-  --query "properties.containerConfiguration.containerGroupProperties.ipAddress.ip")
-  echolog "DS_IP=${DS_IP}"
+if [ "${IS_UPDATE}" == "True" ]; then
+  # echolog "Retrieve IP address of container associated with deployment script"
+  # DS_IP=$(az resource show \
+  # --ids "/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RG/providers/Microsoft.Resources/deploymentScripts/${AKS/-aks/-ds-viya-deploy}" \
+  # --query "properties.containerConfiguration.containerGroupProperties.ipAddress.ip")
+  # echolog "DS_IP=${DS_IP}"
+
+  DS_IP="0.0.0.0/0"
+  CURRENT_IPS=$(az aks show \
+    --resource-group "$RG" \
+    --name "$AKS" \
+    --query "apiServerAccessProfile.authorizedIPRanges" \
+    -o tsv | tr '\t' ',')
+  if [[ -z "$CURRENT_IPS" ]]; then
+    MERGED="$DS_IP"
+  else
+    # Check if IP already exists
+    if echo "$CURRENT_IPS" | grep -qw "$DS_IP"; then
+      echolog "IP $DS_IP is already authorized. Nothing to do."
+      exit 0
+    fi
+    MERGED="$CURRENT_IPS,$DS_IP"
+  fi
+  echolog "Updating authorized IP ranges: $MERGED"
+
+  az aks update \
+    --resource-group "$RG" \
+    --name "$AKS_NAME" \
+    --api-server-authorized-ip-ranges "$MERGED"
+
+  echo "Successfully updated AKS API server authorized IP ranges."
 fi
 
 # Get managed users Kubeconfig
@@ -2187,8 +2211,7 @@ wait_for_fn_result getKubeconfig
 wait_for_fn_with_str_result getStorageAccountKey STORAGE_ACCOUNT_KEY
 
 # Download NFS VM Private Key
-if [ ! "${IS_UPDATE}" ]
-then
+if [ "${IS_UPDATE}" != "True" ]; then
   wait_for_fn_result downloadNfsVmPrivateKey
 fi
 
@@ -2331,9 +2354,8 @@ wait_for_fn_result createSupersetNamespace
 wait_for_fn_result deploySuperset
 
 #Fix Viya Admin
-if [ ! "${IS_UPDATE}" ]
-then
-wait_for_fn_result fixViyaAdmin
+if [ "${IS_UPDATE}" != "True" ]; then
+  wait_for_fn_result fixViyaAdmin
 fi
 
 # Register Ext Client
@@ -2343,8 +2365,7 @@ wait_for_fn_result registerExtClient
 
 # Clean up and output for template
 # Delete NFS VM Private Key
-if [ ! "${IS_UPDATE}" ]
-then
+if [ "${IS_UPDATE}" != "True" ]; then
   wait_for_fn_result deleteNfsVmPrivateKey
 fi
 
@@ -2362,8 +2383,7 @@ V4_CAS_IP="0.0.0.0"
 
 
 # Create home directoy
-if [ ! "${IS_UPDATE}" ]
-then
+if [ "${IS_UPDATE}" != "True" ]; then
   wait_for_fn_result homeDir
 fi
 
@@ -2388,9 +2408,42 @@ wait_for_fn_result uploadLogfile
 echolog "---"
 # lock down AKS API Server and Storage Account if we need to
 if [ "${USE_IP_ALLOWLIST}" == "True" ]; then
-  echolog "USE_IP_ALLOWLIST=${USE_IP_ALLOWLIST}, locking down deployment..."
-  applyAllowlist
-  echolog "Allow list applied..."
+  if [ "${IS_UPDATE}" != "True" ]; then
+    echolog "USE_IP_ALLOWLIST=${USE_IP_ALLOWLIST}, locking down deployment..."
+    applyAllowlist
+    echolog "Allow list applied..."
+  else
+    echolog "Get current list of authorized IPs"
+    CURRENT_IPS=$(az aks show \
+      --resource-group "$RG" \
+      --name "$AKS" \
+      --query "apiServerAccessProfile.authorizedIPRanges" \
+      -o tsv | tr '\t' ',')
+
+    if [[ -z "$CURRENT_IPS" ]]; then
+      echolog "No authorized IPs are currently set. Nothing to remove."
+    else
+      echolog "Current authorized IPs: $CURRENT_IPS"
+      if [ -n "$DS_IP" ]; then
+        echolog "Removing DS_IP: $DS_IP"
+        # Convert to array and filter out REMOVE_IP
+        NEW_IPS=$(echo "$CURRENT_IPS" | tr ',' '\n' | grep -vw "$DS_IP" | paste -sd "," -)
+
+        if [[ "$NEW_IPS" == "$CURRENT_IPS" ]]; then
+          echolog "IP $DS_IP not found in the current list. Nothing to do."
+        fi
+
+        echolog "Updating authorized IP ranges: $NEW_IPS"
+
+        az aks update \
+          --resource-group "$RG" \
+          --name "$AKS" \
+          --api-server-authorized-ip-ranges "$NEW_IPS"
+      else
+        echolog "DS_IP is empty. Nothing to do."
+      fi
+    fi
+  fi
 else
   echolog "USE_IP_ALLOWLIST=${USE_IP_ALLOWLIST}, so we won't lock down deployment."
 fi
