@@ -2288,6 +2288,9 @@ else
 fi
 
 
+wait_for_fn_result retrieveNFSServerInfo
+wait_for_fn_result retrieveJumpServerInfo
+
 # get V4_CFG_LOADBALANCER_SOURCE_RANGES_INGRESS
 wait_for_fn_result getIngressLoadBalancerSourceRanges
 
@@ -2302,8 +2305,7 @@ wait_for_fn_result unzipViya4Manifests
 # We can comment this out since we are using azure flexible server
 # wait_for_fn_result installPostgres
 
-wait_for_fn_result retrieveNFSServerInfo
-wait_for_fn_result retrieveJumpServerInfo
+
 
 wait_for_fn_result createAnsibleVars
 
