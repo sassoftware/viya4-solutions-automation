@@ -223,14 +223,14 @@ function getStorageAccountKey {
 }
 
 function retrieveNFSServerInfo {
-  export NFS_VM_IP=$(az vm list-ip-addresses -g ${RG} -n ${NFS_DEPLOYMENT_NAME} --query "[0].virtualMachine.network.publicIpAddresses[0].ipAddress" -o tsv)
+  export NFS_VM_IP=$(az vm list-ip-addresses -g ${RG} -n ${AKS/-aks/-nfs-vm} | jq -r ".[0].virtualMachine.network.privateIpAddresses[0]")
   export V4_CFG_RWX_FILESTORE_ENDPOINT="$NFS_VM_IP"
   echolog "   NFS_VM_IP=${NFS_VM_IP}"
   echolog "   V4_CFG_RWX_FILESTORE_ENDPOINT=${V4_CFG_RWX_FILESTORE_ENDPOINT}"
 }
 
 function retrieveJumpServerInfo {
-  export JUMP_VM_IP=$(az vm list-ip-addresses -g ${RG} -n ${JUMP_DEPLOYMENT_NAME} --query "[0].virtualMachine.network.publicIpAddresses[0].ipAddress" -o tsv)
+  export JUMP_VM_IP=$(az vm list-ip-addresses -g ${RG} -n ${AKS/-aks/-jump-vm} | jq -r ".[0].virtualMachine.network.privateIpAddresses[0]")
   echolog "   JUMP_VM_IP=${JUMP_VM_IP}"
 }
 
