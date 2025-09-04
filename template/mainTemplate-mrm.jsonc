@@ -96,10 +96,6 @@
             "type": "string",
             "defaultValue": "192.168.2.0/24"
         },
-        "deploymentScriptSubnetPrefix": {
-            "type": "string",
-            "defaultValue": "192.168.4.0/24"
-        },
         "virtualNetworkNewOrExisting": {
             "type": "string",
             "metadata": {
@@ -235,7 +231,6 @@
         "vnetName": "[concat(parameters('deploymentName'), '-vnet')]",
         "aksSubnetName": "[concat(parameters('deploymentName'), '-aks-subnet')]",
         "miscSubnetName": "[concat(parameters('deploymentName'),'-misc-subnet')]",
-        "deploymentScriptSubnetName": "[concat(parameters('deploymentName'),'-ds-subnet')]",
 
 
         "extPgIDS": {
@@ -680,9 +675,6 @@
                    "miscSubnetName": {
                        "value": "[variables('miscSubnetName')]"
                    },
-                   "deploymentScriptSubnetName": {
-                       "value": "[variables('deploymentScriptSubnetName')]"
-                   },
                    "vnetAddressPrefix": {
                        "value": "[parameters('vnetAddressPrefix')]"
                    },
@@ -692,44 +684,11 @@
                    "miscSubnetPrefix": {
                        "value": "[parameters('miscSubnetPrefix')]"
                    },
-                   "deploymentScriptSubnetPrefix": {
-                       "value": "[parameters('deploymentScriptSubnetPrefix')]"
-                   },
                    "virtualNetworkNewOrExisting": {
                        "value": "[parameters('virtualNetworkNewOrExisting')]"
                    }
                }
            }
-        },
-        {
-            "type": "Microsoft.Network/privateDnsZones",
-            "apiVersion": "2020-06-01",
-            "name": "[concat('privatedns.', parameters('location'), '.azmk8s.io')]",
-            "location": "global",
-            "properties": {}
-        },
-        {
-            "type": "Microsoft.Network/privateDnsZones",
-            "apiVersion": "2020-06-01",
-            "name": "[concat('privatedns.', parameters('location'), '.postgres.database.azure.com')]",
-            "location": "global",
-            "properties": {}
-        },
-        {
-            "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
-            "apiVersion": "2020-06-01",
-            "name": "[concat('privatedns.', parameters('location'), '.azmk8s.io/', variables('vnetName'), '-link')]",
-            "location": "global",
-            "dependsOn": [
-                "[resourceId('Microsoft.Network/privateDnsZones', concat('privatedns.', parameters('location'), '.azmk8s.io'))]",
-                "[resourceId('Microsoft.Resources/deployments', variables('vnetDeploymentName'))]"
-            ],
-            "properties": {
-                    "virtualNetwork": {
-                    "id": "[reference(variables('vnetDeploymentName')).outputs.vnetId.value]"
-                },
-                "registrationEnabled": false
-            }
         },
         {
            "name": "[variables('nsgDeploymentName')]",
@@ -956,8 +915,7 @@
            "dependsOn": [
                "[resourceId('Microsoft.Resources/deployments', variables('vnetDeploymentName'))]",
                "[resourceId('Microsoft.Storage/storageAccounts/blobServices/containers', variables('storageAccountName'), 'default', variables('storageAccountContainerName'))]",
-               "[resourceId('Microsoft.Authorization/roleAssignments', variables('rgContributorRoleDefinitionName'))]",
-               "[resourceId('Microsoft.Network/privateDnsZones', concat('privatedns.', parameters('location'), '.postgres.database.azure.com'))]"
+               "[resourceId('Microsoft.Authorization/roleAssignments', variables('rgContributorRoleDefinitionName'))]"
            ],
            "properties": {
                "mode": "Incremental",
@@ -980,8 +938,7 @@
                    "version": {"value": "[variables('aksSizing')[parameters('aksSizing')].extPgConfig[copyIndex()].Version]"},
                    "identityName": {"value": "[variables('identityName')]"},
                    "azCliVersion": {"value": "[variables('azCliVersion')]"},
-                   "subnetCIDR": {"value": "[variables('aksSizing')[parameters('aksSizing')].extPgConfig[copyIndex()].SubnetCIDR]"},
-                   "privateDnsZoneResourceId": {"value": "[resourceId('Microsoft.Network/privateDnsZones', concat('privatedns.', parameters('location'), '.postgres.database.azure.com'))]"}
+                   "subnetCIDR": {"value": "[variables('aksSizing')[parameters('aksSizing')].extPgConfig[copyIndex()].SubnetCIDR]"}
                }
            }
         },
@@ -992,8 +949,7 @@
            "apiVersion": "2021-04-01",
            "dependsOn": [
                "[resourceId('Microsoft.Resources/deployments', variables('vnetDeploymentName'))]",
-               "[resourceId('Microsoft.Resources/deploymentScripts', variables('kubernetesVersionScriptName'))]",
-               "[resourceId('Microsoft.Network/privatednszones/virtualNetworkLinks', concat('privatedns.', parameters('location'), '.azmk8s.io'), concat(variables('vnetName'), '-link'))]"
+               "[resourceId('Microsoft.Resources/deploymentScripts', variables('kubernetesVersionScriptName'))]"
            ],
            "properties": {
                "mode": "Incremental",
@@ -1005,7 +961,6 @@
                    "aksName": {"value": "[variables('aksName')]"},
                    "kubernetesVersion": {"value": "[reference(variables('kubernetesVersionScriptName'), '2020-10-01').outputs.kubernetesVersion]"},
                    "subnetId": {"value": "[reference(variables('vnetDeploymentName')).outputs.aksSubnetId.value]"},
-                   "subnetIdPrivateEndpoint": {"value": "[reference(variables('vnetDeploymentName')).outputs.deploymentScriptSubnetId.value]"},
                    "nodeTopology": { "value": "[variables('aksSizing')[parameters('aksSizing')].nodeTopology]" },
                    "casConfig": { "value": "[variables('casConfig')]" },
                    "computeConfig": { "value": "[variables('computeConfig')]" },
@@ -1013,8 +968,7 @@
                    "statelessConfig": { "value": "[variables('statelessConfig')]" },
                    "managementConfig": { "value": "[variables('managementConfig')]" },
                    "defaultConfig": { "value": "[variables('defaultConfig')]" },
-                   "backupConfig": { "value": "[variables('backupConfig')]" },
-                   "identityName": {"value": "[variables('identityName')]"}
+                   "backupConfig": { "value": "[variables('backupConfig')]" }
                }
            }
         },
@@ -1085,8 +1039,7 @@
                    "tlsKeyB64": { "value": "[parameters('tlsKeyB64')]" }, 
                    "tlsTrustedCaCertsB64": { "value": "[parameters('tlsTrustedCaCertsB64')]" },
                    "viyaOrderSASURI": { "value": "[parameters('viyaOrderSASURI')]" },
-                   "isUpdate": {"value": "[variables('isUpdate')]" },
-                   "subnetId": {"value": "[concat(resourceId('Microsoft.Network/virtualNetworks',concat(parameters('deploymentName'),'-vnet')),'/subnets/',parameters('deploymentName'),'-ds-subnet')]" }
+                   "isUpdate": {"value": "[variables('isUpdate')]" }
                }
            }
         }

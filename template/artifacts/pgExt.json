@@ -61,13 +61,12 @@
         },
         "subnetCIDR":{
             "type": "string"            
-        },
-        "privateDnsZoneResourceId":{
-            "type": "string"
         }
     },
     "variables": {
-        "delegatedSubnetResourceId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vnetName'),'extpg')]"
+        "privateDnsZoneName": "[concat(parameters('vnetName'),'.private.postgres.database.azure.com')]",        
+        "delegatedSubnetResourceId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vnetName'),'extpg')]",
+        "privateDnsZoneArmResourceId": "[resourceId('Microsoft.Network/privateDnsZones', variables('privateDnsZoneName'))]"
     },
     "resources": [
         {
@@ -91,12 +90,35 @@
             }
         },
         {
+            "type": "Microsoft.Network/privateDnsZones",
+            "apiVersion": "2024-06-01",
+            "name": "[variables('privateDnsZoneName')]",
+            "location": "global",
+            "properties": {}            
+        },
+        {
+            "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+            "apiVersion": "2018-09-01",
+            "name": "[concat(variables('privateDnsZoneName'), '/vnet-link')]",
+            "location": "global",
+            "dependsOn": [
+                 "[resourceId('Microsoft.Network/privateDnsZones', variables('privateDnsZoneName'))]"
+            ],
+            "properties": {
+                "registrationEnabled": true,
+                "virtualNetwork": {
+                    "id": "[resourceId('Microsoft.Network/virtualNetworks', parameters('vnetName'))]"
+                }
+            }
+        },
+        {
             "type": "Microsoft.DBforPostgreSQL/flexibleServers",
             "apiVersion": "2023-03-01-preview",
             "name": "[parameters('serverName')]",
             "location": "[parameters('location')]",
             "dependsOn": [
-                "[variables('delegatedSubnetResourceId')]"
+                "[variables('delegatedSubnetResourceId')]",
+                "[variables('privateDnsZoneArmResourceId')]"
             ],
             "sku": {
                 "name": "[parameters('dbInstanceType')]",
@@ -108,7 +130,7 @@
                 "administratorLoginPassword": "[parameters('administratorLoginPassword')]",
                 "network": {
                     "delegatedSubnetResourceId": "[variables('delegatedSubnetResourceId')]",
-                    "privateDnsZoneArmResourceId": "[parameters('privateDnsZoneResourceId')]"
+                    "privateDnsZoneArmResourceId": "[variables('privateDnsZoneArmResourceId')]"
                 },
                 "highAvailability": {
                     "mode": "[parameters('haMode')]"

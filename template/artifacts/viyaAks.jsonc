@@ -16,9 +16,6 @@
         "subnetId": {
             "type": "string"
         },
-        "subnetIdPrivateEndpoint": {
-            "type": "string"
-        },
         "kubernetesVersion": {
             "type": "string"
         },
@@ -50,19 +47,10 @@
         },
         "backupConfig":{
             "type": "object"
-        },
-        "utcValue": {
-            "type": "string",
-            "defaultValue": "[utcNow()]"
-        },
-        "identityName": {
-            "type": "string"
         }
     },
     "variables": {
         "aksName": "[parameters('aksName')]",
-        "privateDnsZoneName": "[concat('privatedns.', parameters('location'), '.azmk8s.io')]",        
-        "privateDnsZoneResourceId": "[resourceId('Microsoft.Network/privateDnsZones', variables('privateDnsZoneName'))]",
         "casConfigDefault": {
             "name": "cas",
             "vmSize": "Standard_B1ls",
@@ -311,31 +299,6 @@
                 },
                 "oidcIssuerProfile": {
                     "enabled": false
-                }
-            }
-        },
-        {
-            "type": "Microsoft.Resources/deploymentScripts",
-            "apiVersion": "2020-10-01",
-            "name": "[concat(variables('aksName'), '-wait-script')]",
-            "location": "[parameters('location')]",
-            "kind": "AzureCLI",
-            "dependsOn": [
-                "[resourceId('Microsoft.ContainerService/managedClusters', parameters('aksName'))]"
-            ],
-            "properties": {
-                "forceUpdateTag": "[parameters('utcValue')]",
-                "azCliVersion": "2.53.0",
-                "timeout": "PT20M",
-                "cleanupPreference": "OnSuccess",
-                "retentionInterval": "P1D",
-                "scriptContent": "[concat(\n'LOGFILE=/mnt/azscripts/azscriptoutput.log\\n',\n'echo \"Script started at $(date)\" | tee -a $LOGFILE\\n',\n'echo \"AKS Name: ', parameters('aksName'), '\" | tee -a $LOGFILE\\n',\n'for i in $(seq 1 40); do\\n',\n'  state=$(az aks show --name ', parameters('aksName'), ' --resource-group ', resourceGroup().name, ' --query provisioningState -o tsv)\\n',\n'  echo \"AKS provisioningState: $state\" | tee -a $LOGFILE\\n',\n'  if [ \"$state\" = \"Succeeded\" ]; then\\n',\n'    echo \"AKS is ready at $(date)\" | tee -a $LOGFILE\\n',\n'    break\\n',\n'  fi\\n',\n'  sleep 30\\n',\n'done\\n',\n'if [ \"$state\" != \"Succeeded\" ]; then\\n',\n'  echo \"AKS did not reach Succeeded state in time\" | tee -a $LOGFILE\\n',\n'  exit 1\\n',\n'fi\\n',\n'echo \"Script finished at $(date)\" | tee -a $LOGFILE\\n',\n'cat $LOGFILE\\n'\n)]",
-                "environmentVariables": [],
-                "identity": {
-                "type": "UserAssigned",
-                "userAssignedIdentities": {
-                    "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('identityName'))]": {}
-                }
                 }
             }
         }
