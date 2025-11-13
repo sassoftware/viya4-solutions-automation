@@ -34,6 +34,10 @@ on:
         description: 'The value for the resource owner tag'
         required: false
         type: string
+      additional_tags:
+          description: 'A list of keys and values to tag the resource with'
+          required: false
+          type: string
     outputs:
       package_sas_uri: 
         value: ${{ jobs.create-storage-account-and-container.outputs.package_sas_uri }}
@@ -77,7 +81,7 @@ jobs:
 
           echo "::group::Create/Use Resource group for Storage account"
           if ! az group show --name "${storage_account_rg}" &>/dev/null; then
-            az group create --name "${storage_account_rg}" --location "${location}" --tags resourceowner="${resource_owner}"
+            az group create --name "${storage_account_rg}" --location "${location}" --tags resourceowner="${resource_owner}" "${{ inputs.additional_tags }}"
             echo "Resource group '${storage_account_rg}' created."
           else
             echo "Resource group '${storage_account_rg}' already exists."
@@ -92,6 +96,8 @@ jobs:
           location="${{ inputs.location }}"
           storage_account_rg="${{ inputs.storage_account_rg }}"
           storage_account_name="${{ inputs.storage_account_name }}"
+          storage_account_name=$(echo ${storage_account_name,,} | cut -c -24 | tr -cd '[:alnum:]')
+          echo "storage_account_name=${storage_account_name}" >> $GITHUB_OUTPUT
 
           echo "::group::Create/Use Storage account and Storage container"
           # Check if the storage account exists
@@ -104,7 +110,7 @@ jobs:
               --resource-group "${storage_account_rg}" \
               --location "${location}" \
               --sku Standard_LRS \
-              --tags resourceowner="${resource_owner}"
+              --tags resourceowner="${resource_owner}" "${{ inputs.additional_tags }}"
           fi
           echo "::endgroup::"
 
@@ -112,7 +118,7 @@ jobs:
         id: get_storage_account_key
         run: |
           # Get the storage account key
-          storage_account_name="${{ inputs.storage_account_name }}"
+          storage_account_name="${{ steps.create_storage_account.outputs.storage_account_name }}"
           storage_account_key=$(az storage account keys list --account-name "${storage_account_name}" --query "[0].value" -o tsv)
           echo "storage_account_key=$storage_account_key" >> $GITHUB_OUTPUT
 
@@ -121,7 +127,7 @@ jobs:
         run: |
           # Create/Use Storage container
           storage_account_rg="${{ inputs.storage_account_rg }}"
-          storage_account_name="${{ inputs.storage_account_name }}"
+          storage_account_name="${{ steps.create_storage_account.outputs.storage_account_name }}"
           storage_account_key="${{ steps.get_storage_account_key.outputs.storage_account_key }}"
           storage_account_container_name="${{ inputs.storage_account_container_name }}"
           
@@ -145,7 +151,7 @@ jobs:
       - name: Upload package to Azure Storage
         id: upload_package
         run: |
-          storage_account_name="${{ inputs.storage_account_name }}"
+          storage_account_name="${{ steps.create_storage_account.outputs.storage_account_name }}"
           storage_account_container_name="${{ steps.create_storage_container.outputs.storage_account_container_name }}"
           storage_account_key="${{ steps.get_storage_account_key.outputs.storage_account_key }}"
           

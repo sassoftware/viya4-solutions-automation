@@ -1,0 +1,104 @@
+# Copyright © 2024, SAS Institute Inc., Cary, NC, USA.  All Rights Reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+---
+name: (RW) Prepare Monitoring Managed Application
+run-name: prepare-monitoring-managed-app
+
+on:
+  workflow_call:
+    inputs:
+      #Required inputs
+      environment:
+        description: 'The environment the managed application has been deployed to.'
+        required: true
+        type: string
+      mapp_mrg_name:
+        description: 'The name for the managed application resource group.'
+        required: true
+        type: string
+      monitor_script_name:
+        description: 'The name for the script to monitor in the managed applicaton resource group.'
+        required: false
+        type: string
+      pollInterval:
+        description: 'The interval in seconds to poll the managed application status.'
+        required: false
+        type: string
+        default: 30
+      timeoutInSecondsDeploymentScripts:
+        description: 'The timeout in seconds for the deployment scripts to be created.'
+        required: false
+        type: string
+        default: 900
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  prepare-monitoring-managed-app:
+    name: prepare-monitoring-managed-app
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+      
+    steps:
+      - name: Log in to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Wait for Managed Application Deployment Script
+        env: 
+          managed_rg: ${{ inputs.mapp_mrg_name }}
+          monitor_script_name: ${{ inputs.monitor_script_name }}
+          subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          pollInterval: ${{ inputs.pollInterval }}
+          timeoutInSecondsDeploymentScripts: ${{ inputs.timeoutInSecondsDeploymentScripts }}
+        shell: bash
+        run: |
+          script_name="${managed_rg/-mrg/-ds-viya-deploy}"
+
+          if [ -z "${monitor_script_name}" ]
+          then
+            echo "No monitor_script_name supplied. This will use the default of ${script_name}"
+          else
+            script_name="${monitor_script_name}"
+            echo "Monitoring the supplied input script name of ${script_name}"
+          fi
+
+          echo "🔎 Waiting for deployment script '$script_name' in resource group '$managed_rg' (subscription: $subscription_id) to be 'Running'..."
+          echo "🕒 Timeout: $timeoutInSecondsDeploymentScripts seconds | Poll interval: $pollInterval seconds"
+
+          START_TIME=$(date +%s)
+
+          while true; do
+            CURRENT_TIME=$(date +%s)
+            ELAPSED=$((CURRENT_TIME - START_TIME))
+
+            if (( ELAPSED >= timeoutInSecondsDeploymentScripts )); then
+              echo "❌ Timed out after $timeoutInSecondsDeploymentScripts seconds."
+              exit 1
+            fi
+
+            STATE=$(az deployment-scripts show --subscription "$subscription_id" --resource-group "$managed_rg" --name "$script_name" 2>/dev/null | jq -r '.provisioningState' 2>/dev/null || true)
+
+            if [[ -z "$STATE" || "$STATE" == "null" ]]; then
+              echo "⏳ Script not found yet (elapsed: ${ELAPSED}s), waiting..."
+              sleep "$pollInterval"
+              continue
+            fi
+
+            if [[ "$STATE" == "Running" ]]; then
+              echo "✅ Script is now running."
+              exit 0
+            elif [[ "$STATE" == "Succeeded" || "$STATE" == "Failed" || "$STATE" == "Canceled" ]]; then
+              echo "⚠️ Script reached terminal state: $STATE"
+              exit 1
+            else
+              echo "⏳ Current state of deployment script '$script_name': $STATE (elapsed: ${ELAPSED}s), waiting..."
+              sleep "$pollInterval"
+            fi
+          done

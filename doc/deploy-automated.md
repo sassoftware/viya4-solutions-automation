@@ -2,13 +2,24 @@
 
 ### Deploy SAS Solution (Automated way via GitHub Actions)
 
-0. First, fork this repository—see [fork this repo](/doc/fork.md) for instructions. Once forked, go to your GitHub repository.
+This automated deployment workflow leverages GitHub Actions to provision and configure SAS solutions in Azure. By using this workflow, you benefit from repeatable deployments managed entirely through your GitHub repository. The workflow orchestrates all necessary steps—from resource creation to solution configuration and deployment monitoring — based on parameters you provide in the GitHub Actions UI.
+
+Key features include:
+- Integration with Azure for secure resource provisioning
+- Parameterized deployments for flexibility and customization
+- Automated logging and artifact management for traceability
+- Support for advanced configuration via additional parameters
+
+Follow the steps below to prepare your repository, configure GitHub Environment secrets, and trigger the deployment workflow for a streamlined SAS solution deployment experience in Azure.
+
+
+0. First, fork this repository—see [fork this repo](/doc/fork.md) for instructions. Once forked, go to your GitHub repository. If you wish to make any changes to the artifacts that are used, make sure you edit the retrieve-package workflow file to point to your forked repo instead of the parent. `repo="<forked_repo>/viya4-solutions-automation"`
 
 1. Ensure your environment variables are set via a GitHub environment. GitHub Environments allow you to define deployment targets and are named configurations used for deployments.
 
    1. Click `Settings` > `Environments` (left sidebar).
    2. Click `New environment`.
-   3. Name your environment (for example `staging`, `production`).
+   3. Name your environment `Azure Subscription`.
    4. Configure `Secrets` by clicking `Add environment secret` and add at least the following secrets:
 
 
@@ -25,10 +36,9 @@
 | `TLS_KEY_B64`                | (Optional) TLS Key corresponding to `<prefix>.${DNS_SUFFIX}` (must be base64-encoded)                                             | `LS0tLS1CRUdJTiBSU0EgUFJ...`                  | Only if `DNS_SUFFIX` is provided       |
 | `TLS_TRUSTED_CA_CERTS_B64`   | (Optional) TLS Trusted CA certificate corresponding to `<prefix>.${DNS_SUFFIX}` (must be base64-encoded)                          | `LS0tLS1CRUdJTiBD...`                         | Only if `DNS_SUFFIX` is provided       |
 
-2. On the default branch (`main`), edit `.github/workflows/deploy-managed-app.yaml`, set the `environment` input to the environment name you configured above and commit.
-3. Go to `GitHub Actions`.
-4. Select the `Deploy Managed Application` workflow.
-5. Click `Run Workflow` and provide the required parameters:
+2. Go to `GitHub Actions`.
+3. Select the `Deploy Managed Application` workflow.
+4. Click `Run Workflow` and provide the required parameters:
 
 | Parameter Name                  | Description                                                                                                                                                                            | Example Value                            | Required |
 |---------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------|----------|
@@ -56,7 +66,7 @@ This form allows users to provide all necessary inputs to start the automated de
 ![alt text](/doc/images/deploy-managed-app-github-ui.png "Title")
 
 
-6. Monitor the workflow for progress and results. Artifacts and logs will be available for review. After execution, the following elements are available in the selected Azure subscription (`${GITHUB_RUN_ID}` corresponds to the GitHub workflow run identifier):
+6. Monitor the workflow for progress and results. The github workflow will continue to get the logs from the azure managed application deployment process and will show as completed once the azure process has completed. Artifacts and logs will be available for review. After execution, the following elements are available in the selected Azure subscription (`${GITHUB_RUN_ID}` corresponds to the GitHub workflow run identifier):
     * A resource group named `mapp-${GITHUB_RUN_ID}-rg` containing:
        * `mappdef-${GITHUB_RUN_ID}`: Service Catalog Managed Application Definition
        * `mapp-${GITHUB_RUN_ID}`: Managed Application
@@ -67,7 +77,7 @@ This form allows users to provide all necessary inputs to start the automated de
        * `mapp${GITHUB_RUN_ID}<RandomNumber>`: Storage account for logs, deployment assets, and CA certificate
     * A resource group named `MC_mapp-${GITHUB_RUN_ID}-mrg-mapp-${GITHUB_RUN_ID}-aks_<Location>` (MC = managed by cluster), containing AKS cluster resources (nodes, disks, etc.)
     * A resource group named `sa-rg` containing:
-       * `viyasolutions`: Azure Storage Account with blob containers (`sac-${GITHUB_RUN_ID}`) for the package needed to create the Service Catalog Managed Application Definition.
+       * `viyasolutions<github.repository_owner>`: Azure Storage Account with blob containers (`sac-${GITHUB_RUN_ID}`) for the package needed to create the Service Catalog Managed Application Definition.
 
 ---
 
@@ -87,23 +97,29 @@ EOF
 ```
 
 The table below indicates which additional parameters are required
-| Label | Variable name | Required? | Default value | Link |
-|-------------| -------------|----------|--|--|
-| IP Allow List | ip_allow_list| **Yes** |   | [link](#ip-allow-list) |
-| Admin User Name for IDS External Postgres Server | ext_pg_ids_admin_user | Yes (Depends on other selections) | | [link](#admin-user-name-and-password-for-external-postgres-server)|
-| Admin Password for IDS External Postgres Server | ext_pg_ids_admin_password | Yes (Depends on other selections) | | [link](#admin-user-name-and-password-for-external-postgres-server)|
-| Admin User Name for CDS External Postgres Server | ext_pg_cds_admin_user | Yes (Depends on other selections) | |[link](#admin-user-name-and-password-for-external-postgres-server)|
-| Admin Pasword for CDS External Postgres Server | ext_pg_cds_admin_password | Yes (Depends on other selections) | |[link](#admin-user-name-and-password-for-external-postgres-server)|
-| Number of predefined users to configure | step_add_users | No | 5 | [link](#number-of-pre-defined-users-to-configure)|
-| Azure Region/Location | location | No | `eastus` | [link](#azure-regionlocation) |
-| Azure Admin Group Name | azure_admin_group_name | No | see Environment Secrets | [link](#azure-regionlocation) |
-| Azure Admin Group Role | azure_admin_group_role | No | see Environment Secrets | [link](#azure-managed-application-definition-authorizations) |
-| DNS suffix | step_add_users | No | see Environment Secrets | [link](#dns-suffix) |
-| Package version | package_version | No | `latest` | [link](#package-version) |
-| Azure Storage Container Artifact Name | artifact_name | No | `package-deploy` | [link](#azure-storage-container-artifact-name) |
-| Managed Application Resource Group Name | mapp_rg_name | No | `mapp-<github.run_id>-rg` | [link](#managed-application-resource-group-name) |
-| Managed Application Definition Name | mapp_def_name | No | `mappdef-<github.run_id>` | [link](#managed-application-definition-name) |
-| Update Existing Deployment Managed Resource Group Name | update_existing_deployment_mrg_name | No | | [link](#update-existing-deployment-managed-resource-group-name) |
+| Label | Variable name | Required For Initial Deploy? | Required For Update? | Default value | Link |
+|-------------| -------------|---------|---------|--|--|
+| IP Allow List | ip_allow_list| **Yes** | No |  | [link](#ip-allow-list) |
+| Admin User Name for IDS External Postgres Server | ext_pg_ids_admin_user | Yes (Depends on other selections) | No | | [link](#admin-user-name-and-password-for-external-postgres-server)|
+| Admin Password for IDS External Postgres Server | ext_pg_ids_admin_password | Yes (Depends on other selections) | No | | [link](#admin-user-name-and-password-for-external-postgres-server)|
+| Admin User Name for CDS External Postgres Server | ext_pg_cds_admin_user | Yes (Depends on other selections) | No | | [link](#admin-user-name-and-password-for-external-postgres-server)|
+| Admin Pasword for CDS External Postgres Server | ext_pg_cds_admin_password | Yes (Depends on other selections) | No | | [link](#admin-user-name-and-password-for-external-postgres-server)|
+| Number of predefined users to configure | step_add_users | No | No | 5 | [link](#number-of-pre-defined-users-to-configure)|
+| Azure Region/Location | location | No | Yes (If original region was not default) | `eastus` | [link](#azure-regionlocation) |
+| Azure Admin Group Name | azure_admin_group_name | No | No | see Environment Secrets | [link](#azure-managed-application-definition-authorizations) |
+| Azure Admin Group Role | azure_admin_group_role | No | No | see Environment Secrets | [link](#azure-managed-application-definition-authorizations) |
+| DNS suffix | dns_suffix | No | No | see Environment Secrets | [link](#dns-suffix) |
+| TLS certificate | tls_cert_b64 | No | No | see Environment Secrets | [link](#dns-suffix) |
+| TLS key | tls_key_b64 | No | No | see Environment Secrets | [link](#dns-suffix) |
+| TLS trusted CA certificate | tls_trusted_ca_certs_b64 | No | No | see Environment Secrets | [link](#dns-suffix) |
+| Package version | package_version | No | No | `latest` | [link](#package-version) |
+| Azure Storage Container Artifact Name | artifact_name | No | No | `package-deploy` | [link](#azure-storage-container-artifact-name) |
+| Azure Storage Account Name | storage_account_name | No | No | see Below | [link](#azure-storage-account-name) |
+| Managed Application Resource Group Name | mapp_rg_name | No | Yes | `mapp-<github.run_id>-rg` | [link](#managed-application-resource-group-name) |
+| Managed Application Definition Name | mapp_def_name | No | No | `mappdef-<github.run_id>` | [link](#managed-application-definition-name) |
+| Update Existing Deployment Managed Resource Group Name | update_existing_deployment_mrg_name | No | Yes | | [link](#update-existing-deployment-managed-resource-group-name) |
+| Resource Owner | resource_owner | No | No | `<github.actor>` | [link](#resource-owner) |
+| Additional Tags | additional_tags | No | No | | [link](#additional-tags) |
 
 ---
 ##### IP allow list
@@ -236,6 +252,10 @@ EOF
 By default, the automation uses the `package-deploy` name to upload the artifact to the storage container. You may override this by setting this variable.
 
 ---
+##### Azure Storage Account Name
+By default, the automation uses the first 24 alpha-numeric characters of `viyasolutions<github.repository_owner>` to create an azure storage account. This account must be globally unique in azure. You may override this name but it must be between 3 and 24 lowercase alpha-numeric characters.
+
+---
 
 ##### Managed Application Resource Group Name
 By default, the automation uses github.run_id to format a default name for the resource group that will hold all artifacts for the managed application. You may override this by setting this variable.
@@ -248,9 +268,16 @@ By default, the automation uses github.run_id to format a default name for the m
 ---
 
 ##### Update Existing Deployment Managed Resource Group Name
-By default, the automation will assume this is a new deployment request. You may update an existing deployment by passing in the managed resource group name to this variable.
+This parameter is only used during the upgrade automation. You may update an existing deployment by passing in the managed resource group name to this variable.
 
 ---
+##### Resource Owner
+By default, the automation uses `<github.actor>` as the value for the resourceowner tag on all artifacts created. This parameter is used to specify a different value for the tag.
 
+---
+##### Additional Tags
+This parameter is used to set additional tags on all azure resources created. The format should be a string with space separated values of <key>=<value>.
+
+---
 
 [← Back to README](../README.md)

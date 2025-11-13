@@ -35,6 +35,10 @@ on:
         description: 'The value for the resource owner tag'
         required: false
         type: string
+      additional_tags:
+        description: 'A list of keys and values to tag the resource with'
+        required: false
+        type: string
 
 permissions:
   id-token: write
@@ -73,7 +77,7 @@ jobs:
           echo "::group::Create Resource Group for Managed Application"
           if ! az group show --name "${mapp_rg}" &>/dev/null; then
             echo "Creating resource group '${mapp_rg}'."
-            az group create --name "${mapp_rg}" --location "${location}" --tags resourceowner="${resource_owner}"
+            az group create --name "${mapp_rg}" --location "${location}" --tags resourceowner="${resource_owner}" "${{ inputs.additional_tags }}"
           else
             echo "Resource group '${mapp_rg}' already exists."
           fi
@@ -115,7 +119,7 @@ jobs:
             --authorizations "${group_id}:${role_id}" \
             --package-file-uri "$package_sas_uri" \
             --deployment-mode "Incremental" \
-            --tags resourceowner="${resource_owner}" | jq .id | sed 's/"//g')
+            --tags resourceowner="${resource_owner}" "${{ inputs.additional_tags }}" | jq .id | sed 's/"//g')
           echo "mapp_def_id=$mapp_def_id"  
           echo "mapp_def_name=$mapp_def_name" >> $GITHUB_OUTPUT
           echo "::endgroup::"

@@ -49,6 +49,10 @@ on:
         description: 'The value for the resource owner tag'
         required: false
         type: string
+      additional_tags:
+        description: 'A list of keys and values to tag the resource with'
+        required: false
+        type: string
 
       step_install_superset_flag:
         description: 'Step Install Superset Flag'
@@ -152,7 +156,7 @@ jobs:
         run: |
           # Create Managed Application
           # Github action variables
-          resourceowner=${{ env.resource_owner }}
+          resource_owner=${{ env.resource_owner }}
           
 
           echo "::group::Create Managed Application"
@@ -296,10 +300,6 @@ jobs:
               deployScriptContainerCleanupPreference: {value: $deployScriptContainerCleanupPreference}
             }')
 
-          mapp_tags=(
-            "resourceowner=$resourceowner"
-          ) 
-
           echo "Triggering managed application ..."
           # This command is run in background 
           az managedapp create \
@@ -309,7 +309,7 @@ jobs:
             --kind ServiceCatalog \
             --managed-rg-id "/subscriptions/${subscription_id}/resourceGroups/${managed_rg}" \
             --managedapp-definition-id "/subscriptions/${subscription_id}/resourceGroups/${mapp_rg}/providers/Microsoft.Solutions/applicationDefinitions/${mapp_def_name}" \
-            --tags "${mapp_tags[@]}" \
+            --tags resourceowner="${resource_owner}" "${{ inputs.additional_tags }}" \
             --parameters "${mapp_json}" &
 
           echo "NOTE: The managed application has been successfully triggered."

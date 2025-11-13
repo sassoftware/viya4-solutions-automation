@@ -71,6 +71,9 @@ function kustomization_insert {
       "prepend")
         yq -y -i ".+ {\"$section\"}  | .$section |= ($item + .| $yq_sort )" $kustomization_file_path
       ;;
+      "block_append")
+        yq -y -i ".$section += ($item)" $kustomization_file_path   
+      ;;                                 
     esac;
 }
 
@@ -440,7 +443,10 @@ function applyViya4Manifests {
 
   if [ -f $HOME/deployments/${AKS}/${V4_CFG_NAMESPACE}/site-config/tls/ingress-annotation-transformer.yaml ]; then
     echolog "[applyViya4Manifests] ingress-annotation-transformer.yaml found under site-config/tls so lets make sure DaC doesn't touch it ..."
-    yq -y 'del(.[] | select(.name == "TLS - Certificate Generation - cert-manager"))' $HOME/viya4-deployment/roles/vdm/tasks/tls.yaml
+    tmp=$(mktemp)
+    cp $HOME/viya4-deployment/roles/vdm/tasks/tls.yaml $tmp
+    yq -y 'del(.[] | select(.name == "TLS - Certificate Generation - cert-manager"))' $tmp > $HOME/viya4-deployment/roles/vdm/tasks/tls.yaml
+    rm $tmp
     echolog "[applyViya4Manifests] ingress-annotation-transformer.yaml OK"
   fi
 
@@ -540,19 +546,19 @@ function v4dInstallViya {
   for cirrus_solution in ${CIRRUS_SOLUTIONS[@]}
   do
     echolog "for $cirrus_solution"
-    for modifier in "transformers" "generators"
+    for modifier in "configMapGenerator" "secretGenerator"
     do
-      transformer_file="$HOME/viya4-manifests/cirrus/${cirrus_solution}-config-${modifier}-${V4_CFG_CADENCE_VERSION}.yaml"
+      transformer_file="$HOME/viya4-manifests/cirrus/${cirrus_solution}-${modifier}-${V4_CFG_CADENCE_VERSION}.yaml"
       if [ -f "${transformer_file}" ];
       then 
         echolog "[v4dInstallViya] Using specific cadence $modifier file: $transformer_file"
       else
-        transformer_file="$HOME/viya4-manifests/cirrus/${cirrus_solution}-config-${modifier}-${V4_CFG_CADENCE_YEAR}.xx.yaml"
+        transformer_file="$HOME/viya4-manifests/cirrus/${cirrus_solution}-${modifier}-${V4_CFG_CADENCE_YEAR}.xx.yaml"
         if [ -f "${transformer_file}" ];
         then 
           echolog "[v4dInstallViya] Using year-specific $modifier file: $transformer_file"
         else
-          transformer_file="$HOME/viya4-manifests/cirrus/${cirrus_solution}-config-${modifier}-default.yaml"
+          transformer_file="$HOME/viya4-manifests/cirrus/${cirrus_solution}-${modifier}-default.yaml"
           if [ -f "${transformer_file}" ];
           then 
             echolog "[v4dInstallViya] Using default $modifier file: $transformer_file"
@@ -565,8 +571,8 @@ function v4dInstallViya {
 
       if [ -n "$transformer_file" ]
       then
-        mkdir -p $HOME/deployments/$AKS/$V4_CFG_NAMESPACE/site-config/$cirrus_solution/resources/
-        target_file="$HOME/deployments/$AKS/$V4_CFG_NAMESPACE/site-config/$cirrus_solution/resources/${cirrus_solution}-config-${modifier}.yaml"
+        mkdir -p $HOME/deployments/$AKS/$V4_CFG_NAMESPACE/site-config/$cirrus_solution
+        target_file="$HOME/deployments/$AKS/$V4_CFG_NAMESPACE/site-config/$cirrus_solution/$modifier.env"
         cp "$transformer_file" "$target_file"
 
         perl -pi -e "s|<<SAS_RISK_CIRRUS_WORKFLOW_DEFAULT_SERVICE_ACCOUNT>>|${SAS_RISK_CIRRUS_WORKFLOW_DEFAULT_SERVICE_ACCOUNT}|" $target_file
@@ -575,7 +581,12 @@ function v4dInstallViya {
         perl -pi -e "s|<<SAS_RISK_CIRRUS_REPO_FQDN>>|${SAS_RISK_CIRRUS_REPO_FQDN:-Unknown}|" $target_file
         perl -pi -e "s|<<SAS_RISK_CIRRUS_REPO_HOST>>|${SAS_RISK_CIRRUS_REPO_HOST:-Unknown}|" $target_file
 
-        kustomization_insert "kustomization.yaml" "$modifier" "[\"site-config/$cirrus_solution/resources/${cirrus_solution}-config-${modifier}.yaml\"]" "append"
+        if [ $modifier = "configMapGenerator" ]; then
+          kustomization_insert "kustomization.yaml" "$modifier" "[{\"name\": \"${cirrus_solution}-parameters\", \"behavior\": \"merge\", \"envs\": [\"site-config/$cirrus_solution/$modifier.env\"]}]" "block_append"
+        elif [ $modifier = "secretGenerator" ]; then
+          kustomization_insert "kustomization.yaml" "$modifier" "[{\"name\": \"${cirrus_solution}-secret\", \"behavior\": \"merge\", \"envs\": [\"site-config/$cirrus_solution/$modifier.env\"]}]" "block_append"
+        fi
+
         echolog "[v4dInstallViya] Kustomization for $cirrus_solution (modifier=$modifier) is applied."
       fi
     done

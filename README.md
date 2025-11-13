@@ -6,10 +6,11 @@ Currently, this repository supports the following combinations:
 
 |SAS solution              |Cadence           |AKS Kubernetes Version|
 |--------------------------|------------------|--------|
-|SAS Model Risk Management | stable - 2025.06 | 1.32.x |
-|SAS Model Risk Management | stable - 2025.07 | 1.32.x |
+|SAS Model Risk Management | lts - 2025.09 | 1.32.x |
 |SAS Model Risk Management | stable - 2025.08 | 1.32.x |
 |SAS Model Risk Management | stable - 2025.09 | 1.32.x |
+|SAS Model Risk Management | stable - 2025.10 | 1.32.x |
+|SAS Model Risk Management | stable - 2025.11 | 1.32.x |
 
 ## Documentation Index
 
@@ -18,6 +19,7 @@ Currently, this repository supports the following combinations:
 - [Deploy SAS Solution](/doc/deploy.md)
   - [Manual Deployment](/doc/deploy-manual.md)
   - [Automated Deployment via GitHub Actions](/doc/deploy-automated.md)
+  - [Upgrading a Deployment](/doc/update-deployment.md)
   - [SAS Solution Order Notes](/doc/sas-solution-order.md)
   - [Access Environment](/doc/access.md)
   - [Environment Sizing](/doc/environment-sizing.md)
