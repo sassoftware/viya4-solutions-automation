@@ -70,7 +70,7 @@
             "tags": {
             },
             "sku": {
-                "name": "Basic",
+                "name": "Standard",
                 "tier": "Regional"
             },
             "properties": {
