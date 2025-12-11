@@ -17,7 +17,7 @@ on:
         default: 'ProdSmall'
         type: string
       viya_order_sas_uri:
-        description: 'SAS URI for Viya Order'
+        description: 'Viya Order URL'
         required: true
         type: string
       viya_admin_password:
@@ -67,7 +67,7 @@ on:
           - 'ProdMedium'
           - 'ProdLarge'
       viya_order_sas_uri:
-        description: 'SAS URI for Viya Order'
+        description: 'Viya Order URL'
         required: true
         type: string
       viya_admin_password:
@@ -284,7 +284,7 @@ jobs:
       mapp_mrg_name: ${{ needs.construct-mrg-variables.outputs.mapp_mrg_name }}
       monitor_script_name: ${{ needs.construct-mrg-variables.outputs.monitor_script_name }}
       pollInterval: 30
-      maxDurationInSeconds: 3500  #   Must be lower than 1 hour to avoid timeout issues in the workflow due to AZ login
+      maxDurationInSeconds: 3400  #   Must be lower than 1 hour to avoid timeout issues in the workflow due to AZ login
       artifact_name: monitor-1sthour-${{ needs.construct-mrg-variables.outputs.monitor_script_name }}
       lastMonitoringJobFlag: false
 
@@ -299,7 +299,7 @@ jobs:
       mapp_mrg_name: ${{ needs.construct-mrg-variables.outputs.mapp_mrg_name }}
       monitor_script_name: ${{ needs.construct-mrg-variables.outputs.monitor_script_name }}
       pollInterval: 30
-      maxDurationInSeconds: 3500  #   Must be lower than 1 hour to avoid timeout issues in the workflow due to AZ login
+      maxDurationInSeconds: 3400  #   Must be lower than 1 hour to avoid timeout issues in the workflow due to AZ login
       artifact_name: monitor-2ndhour-${{ needs.construct-mrg-variables.outputs.monitor_script_name }}
       lastMonitoringJobFlag: false
 
@@ -314,6 +314,6 @@ jobs:
       mapp_mrg_name: ${{ needs.construct-mrg-variables.outputs.mapp_mrg_name }}
       monitor_script_name: ${{ needs.construct-mrg-variables.outputs.monitor_script_name }}
       pollInterval: 30
-      maxDurationInSeconds: 3500  #   Must be lower than 1 hour to avoid timeout issues in the workflow due to AZ login
+      maxDurationInSeconds: 3400  #   Must be lower than 1 hour to avoid timeout issues in the workflow due to AZ login
       artifact_name: monitor-3rdhour-${{ needs.construct-mrg-variables.outputs.monitor_script_name }}
       lastMonitoringJobFlag: true

@@ -73,7 +73,6 @@ jobs:
             "MRM")
               manifestsToAdd+=("cluster/*")
               manifestsToAdd+=("cirrus/*")
-              manifestsToAdd+=("dashboards/*")
               manifestsToAdd+=("homedirs/*")
               manifestsToAdd+=("site-config/sas-openldap/*")
               manifestsToAdd+=("site-config/tls/*")

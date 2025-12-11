@@ -45,7 +45,7 @@ Follow the steps below to prepare your repository, configure GitHub Environment 
 | `Branch`                        | The Git branch to use for the workflow run. Use `main` unless you are testing a feature branch.                                                                                        | `main`                                   | Yes      |
 | `SAS solution to deploy`   | The specific SAS solution to deploy. This must match a solution present in the supported combinations table.                                 | `SAS Model Risk Management`              | Yes      |
 | `AKS Cluster Sizing`            | The sizing preset for the Azure Kubernetes Service (AKS) cluster. Determines node sizes and counts for the deployment.                            | `ProdSmall`, `ProdMedium`, `ProdLarge`   | Yes      |
-| `SAS URI for Viya Order`        | The URL to a ZIP file containing your SAS solution assets, license, and certificates (see [Note about SAS solution order](/doc/sas-solution-order.md) for more details). Must match the solution and cadence you are deploying.        | `https://<your-storage-account>/order.zip` | Yes      |
+| `Viya Order URL`        | The URL to a ZIP file containing your SAS solution assets, license, and certificates (see [Note about SAS solution order](/doc/sas-solution-order.md) for more details). Must match the solution and cadence you are deploying.        | `https://<your-storage-account>/order.zip` | Yes      |
 | `Viya Admin Password`           | The password for the admin user of the Viya deployment.                                                     | `S3cureP@ssw0rdW1thNumb3rsAndSymb0ls`   | Yes      |
 | `SSH Public Key for the deployment`           | SSH Public Key (OpenSSH format) to access the jumpbox client                                                                      | `ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQ...`   | Yes      |
 | `Environment to deploy to`      | The target environment for deployment.                                                                     | The value you set as 'environment name'  | Yes      |
@@ -56,7 +56,7 @@ The following screenshot shows the GitHub Actions workflow UI for deploying the 
 * Branch
 * SAS solution to deploy
 * AKS Cluster Sizing
-* SAS URI for Viya Order
+* Viya Order URL
 * Viya Admin Password
 * SSH Public Key for the deployment
 * Environment to deploy to
